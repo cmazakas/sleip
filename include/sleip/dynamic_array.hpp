@@ -20,6 +20,8 @@ template <class T, class Allocator>
 struct dynamic_array
 {
 public:
+  static_assert(std::is_object_v<T>, "Only support object types");
+
   using value_type             = T;
   using allocator_type         = Allocator;
   using size_type              = std::size_t;
