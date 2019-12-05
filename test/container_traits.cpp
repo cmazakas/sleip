@@ -32,6 +32,10 @@ static_assert(std::is_same_v<typename sleip::dynamic_array<int>::const_pointer,
                              typename sleip::dynamic_array<int>::value_type const*>,
               "DynamicArray's const_pointer should be a const pointer to its value type");
 
+static_assert(sizeof(sleip::dynamic_array<int, std::allocator<int>>) ==
+                sizeof(int*) + sizeof(std::size_t),
+              "Must implement EBO for Allocator");
+
 int
 main()
 {
