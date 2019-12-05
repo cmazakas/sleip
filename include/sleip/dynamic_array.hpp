@@ -13,10 +13,10 @@
 
 namespace sleip
 {
-template <class T, class Allocator>
+template <class T, class Allocator = std::allocator<T>>
 struct dynamic_array;
 
-template <class T, class Allocator = std::allocator<T>>
+template <class T, class Allocator>
 struct dynamic_array
 {
 public:
