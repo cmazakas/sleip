@@ -20,8 +20,6 @@ template <class T, class Allocator>
 struct dynamic_array
 {
 public:
-  static_assert(std::is_object_v<T>, "Only support object types");
-
   using value_type             = T;
   using allocator_type         = Allocator;
   using size_type              = std::size_t;
@@ -34,6 +32,10 @@ public:
   using const_iterator         = const_pointer;
   using reverse_iterator       = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+  static_assert(std::is_object_v<value_type>, "Only support object types");
+  static_assert(std::is_same_v<typename allocator_type::value_type, value_type>,
+                "Allocator's value type must match container's");
 
 private:
   T*          data_ = nullptr;
