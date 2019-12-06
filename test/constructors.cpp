@@ -172,6 +172,7 @@ test_move_constructible_allocator()
   sleip::dynamic_array<int, boost::default_allocator<int>> buf(nums.begin(), nums.end(), alloc);
   sleip::dynamic_array<int, boost::default_allocator<int>> buf2(std::move(buf), alloc);
 
+  BOOST_TEST(buf.get_allocator() == buf2.get_allocator());
   BOOST_TEST_EQ(buf.size(), 0);
   BOOST_TEST_EQ(buf2.size(), nums.size());
   BOOST_TEST_ALL_EQ(buf2.begin(), buf2.end(), nums.begin(), nums.end());
