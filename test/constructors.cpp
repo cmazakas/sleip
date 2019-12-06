@@ -19,7 +19,7 @@ namespace boost
 void
 throw_exception(std::exception const& e)
 {
-  std::cout << "Exception generated in noexcept code\nError: " << e.what() << "\n\n";
+  std::cerr << "Exception generated in noexcept code\nError: " << e.what() << "\n\n";
   std::terminate();
 }
 } // namespace boost
