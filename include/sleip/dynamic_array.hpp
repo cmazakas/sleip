@@ -224,8 +224,8 @@ public:
       return;
     }
 
-#ifndef BOOST_NO_EXCEPTIONS
     auto idx = size_type{};
+#ifndef BOOST_NO_EXCEPTIONS
     try {
 #endif
 
