@@ -254,24 +254,8 @@ public:
   }
 
   dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator())
+    : dynamic_array(init.begin(), init.end(), alloc)
   {
-#ifndef BOOST_NO_EXCEPTIONS
-    try {
-#endif
-
-      auto       alloc_ = alloc;
-      auto const count  = init.size();
-
-      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, count), deleter(alloc, count)};
-
-      boost::alloc_construct_n(alloc_, data(), init.size(), init.begin());
-
-#ifndef BOOST_NO_EXCEPTIONS
-    }
-    catch (std::exception const& ex) {
-      boost::throw_exception(ex);
-    }
-#endif
   }
 
   ~dynamic_array()
