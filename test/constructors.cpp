@@ -155,6 +155,8 @@ test_move_constructible()
   sleip::dynamic_array<int>       buf(nums.begin(), nums.end());
   sleip::dynamic_array<int> const buf2(std::move(buf));
 
+  static_assert(noexcept(sleip::dynamic_array<int>(std::move(buf))));
+
   BOOST_TEST_EQ(buf.size(), 0);
   BOOST_TEST_EQ(buf2.size(), nums.size());
   BOOST_TEST_ALL_EQ(buf2.begin(), buf2.end(), nums.begin(), nums.end());
