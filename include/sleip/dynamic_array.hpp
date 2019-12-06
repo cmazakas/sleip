@@ -18,7 +18,7 @@ template <class T, class Allocator = std::allocator<T>>
 struct dynamic_array;
 
 template <class T, class Allocator>
-struct dynamic_array : boost::empty_value<Allocator, 0>
+struct dynamic_array
 {
 public:
   using value_type             = T;
@@ -39,61 +39,108 @@ public:
                 "Allocator's value type must match container's");
 
 private:
-  T*          data_ = nullptr;
-  std::size_t size_ = 0;
+  struct deleter : boost::empty_value<Allocator, 0>
+  {
+    std::size_t size = 0;
+
+    deleter() noexcept(noexcept(Allocator()))
+      : boost::empty_value<Allocator, 0>(boost::empty_init_t{})
+    {
+    }
+
+    deleter(deleter const&) = delete;
+
+    deleter(deleter&& other) noexcept
+      : boost::empty_value<Allocator, 0>(
+          boost::empty_init_t{},
+          std::move(static_cast<boost::empty_value<Allocator, 0>&>(other).get()))
+      , size{other.size}
+    {
+      other.size = 0;
+    };
+
+    deleter(std::size_t size_)
+      : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, Allocator())
+      , size{size_}
+    {
+    }
+
+    deleter(Allocator const& alloc, std::size_t size_)
+      : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+      , size{size_}
+    {
+    }
+
+    auto
+    operator=(deleter const&) & -> deleter& = delete;
+
+    auto
+      operator=(deleter&& other) &
+      noexcept -> deleter&
+    {
+      boost::empty_value<Allocator, 0>::get() =
+        std::move(static_cast<boost::empty_value<Allocator, 0>&>(other).get());
+
+      size       = other.size;
+      other.size = 0;
+
+      return *this;
+    }
+
+    auto
+    get_allocator() const noexcept -> Allocator
+    {
+      return boost::empty_value<Allocator, 0>::get();
+    }
+
+    auto
+    operator()(T* ptr) -> void
+    {
+      auto alloc = get_allocator();
+      std::allocator_traits<Allocator>::deallocate(alloc, ptr, size);
+    }
+  };
+
+  std::unique_ptr<T, deleter> data_ = {nullptr, deleter(Allocator(), 0)};
 
 public:
-  dynamic_array() noexcept(noexcept(Allocator())) = default;
+  dynamic_array() noexcept(noexcept(Allocator())){};
 
   explicit dynamic_array(const Allocator& alloc) noexcept
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : data_(nullptr, deleter(alloc, 0))
   {
   }
 
   dynamic_array(size_type count, T const& value, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), count);
-
-#ifdef BOOST_NO_EXCEPTIONS
-    boost::alloc_construct_n(get_allocator(), data_, count, std::addressof(value), 1);
-    size_ = count;
-#else
+#ifndef BOOST_NO_EXCEPTIONS
     try {
-      boost::alloc_construct_n(get_allocator(), data_, count, std::addressof(value), 1);
-      size_ = count;
+#endif
+
+      auto alloc_ = alloc;
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, count), deleter(alloc_, count)};
+      boost::alloc_construct_n(alloc_, data(), count, std::addressof(value), 1);
+
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, count);
       boost::throw_exception(ex);
-    }
-    catch (...) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, count);
-      throw;
     }
 #endif
   }
 
   explicit dynamic_array(size_type count, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), count);
-
-#ifdef BOOST_NO_EXCEPTIONS
-    boost::alloc_construct_n(get_allocator(), data_, count);
-    size_ = count;
-#else
+#ifndef BOOST_NO_EXCEPTIONS
     try {
-      boost::alloc_construct_n(get_allocator(), data_, count);
-      size_ = count;
+#endif
+      auto alloc_ = alloc;
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, count), deleter(alloc_, count)};
+      boost::alloc_construct_n(alloc_, data(), count);
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, count);
       boost::throw_exception(ex);
-    }
-    catch (...) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, count);
-      throw;
     }
 #endif
   }
@@ -102,187 +149,159 @@ public:
   // range's size up-front
   template <class ForwardIterator>
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
-    auto const count = static_cast<size_type>(std::distance(first, last));
-
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), count);
-
-#ifdef BOOST_NO_EXCEPTIONS
-    boost::alloc_construct_n(get_allocator(), data_, count, first);
-    size_ = count;
-#else
+#ifndef BOOST_NO_EXCEPTIONS
     try {
-      boost::alloc_construct_n(get_allocator(), data_, count, first);
-      size_ = count;
+#endif
+      auto const count = static_cast<size_type>(std::distance(first, last));
+
+      auto alloc_ = alloc;
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, count), deleter(alloc_, count)};
+      boost::alloc_construct_n(alloc_, data(), count, first);
+
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, count);
       boost::throw_exception(ex);
-    }
-    catch (...) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, count);
-      throw;
     }
 #endif
   }
 
   dynamic_array(dynamic_array const& other)
-    : boost::empty_value<Allocator, 0>(
-        boost::empty_init_t{},
-        std::allocator_traits<allocator_type>::select_on_container_copy_construction(
-          other.get_allocator()))
   {
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), other.size());
-
-#ifdef BOOST_NO_EXCEPTIONS
-    boost::alloc_construct_n(get_allocator(), data_, other.size(), other.begin());
-    size_ = other.size();
-#else
+#ifndef BOOST_NO_EXCEPTIONS
     try {
-      boost::alloc_construct_n(get_allocator(), data_, other.size(), other.begin());
-      size_ = other.size();
+#endif
+
+      auto alloc = std::allocator_traits<allocator_type>::select_on_container_copy_construction(
+        other.get_allocator());
+
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc, other.size()),
+               deleter(alloc, other.size())};
+
+      boost::alloc_construct_n(alloc, data(), other.size(), other.begin());
+
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, other.size());
       boost::throw_exception(ex);
-    }
-    catch (...) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, other.size());
-      throw;
     }
 #endif
   }
 
   dynamic_array(dynamic_array const& other, Allocator const& alloc)
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), other.size());
-
-#ifdef BOOST_NO_EXCEPTIONS
-    boost::alloc_construct_n(get_allocator(), data_, other.size(), other.begin());
-    size_ = other.size();
-#else
+#ifndef BOOST_NO_EXCEPTIONS
     try {
-      boost::alloc_construct_n(get_allocator(), data_, other.size(), other.begin());
-      size_ = other.size();
+#endif
+
+      auto alloc_ = alloc;
+
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
+               deleter(alloc_, other.size())};
+
+      boost::alloc_construct_n(alloc_, data(), other.size(), other.begin());
+
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, other.size());
       boost::throw_exception(ex);
-    }
-    catch (...) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, other.size());
-      throw;
     }
 #endif
   }
 
   dynamic_array(dynamic_array&& other) noexcept
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, get_allocator())
-    , data_(other.data_)
-    , size_(other.size_)
+    : data_(std::move(other).data_)
   {
-    other.data_ = nullptr;
-    other.size_ = 0;
   }
 
   dynamic_array(dynamic_array&& other, Allocator const& alloc)
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
-    if (get_allocator() == other.get_allocator()) {
-      data_ = other.data_;
-      size_ = other.size_;
+    auto alloc_ = alloc;
 
-      other.data_ = nullptr;
-      other.size_ = 0;
+    if (alloc_ == other.get_allocator()) {
+      data_ = std::move(other).data_;
       return;
     }
 
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), other.size_);
-
-#ifdef BOOST_NO_EXCEPTIONS
-    for (size_type idx = 0; idx < other.size_; ++idx) {
-      std::allocator_traits<Allocator>::construct(get_allocator(), data_,
-                                                  std::move(other.data_[idx]));
-    }
-#else
-    auto idx = size_type{0};
+#ifndef BOOST_NO_EXCEPTIONS
+    auto idx = size_type{};
     try {
-      for (; idx < other.size_; ++idx) {
-        std::allocator_traits<Allocator>::construct(get_allocator(), data_,
-                                                    std::move_if_noexcept(other.data_[idx]));
+#endif
+
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
+               deleter(alloc_, other.size())};
+
+      for (idx = 0; idx < other.size(); ++idx) {
+        std::allocator_traits<Allocator>::construct(alloc_, data(), std::move(other.data()[idx]));
       }
+
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
       for (size_type jdx = 0; jdx <= idx; ++jdx) {
-        std::allocator_traits<Allocator>::destroy(get_allocator(), data_ + idx - jdx);
+        std::allocator_traits<Allocator>::destroy(alloc_, data() + idx - jdx);
       }
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, other.size_);
       boost::throw_exception(ex);
     }
     catch (...) {
       for (size_type jdx = 0; jdx <= idx; ++jdx) {
-        std::allocator_traits<Allocator>::destroy(get_allocator(), data_ + idx - jdx);
+        std::allocator_traits<Allocator>::destroy(alloc_, data() + idx - jdx);
       }
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, other.size_);
       throw;
     }
 #endif
   }
 
   dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
-    data_ = std::allocator_traits<Allocator>::allocate(get_allocator(), init.size());
-
-#ifdef BOOST_NO_EXCEPTIONS
-    boost::alloc_construct_n(get_allocator(), data_, init.size(), init.begin());
-    size_ = init.size();
-#else
+#ifndef BOOST_NO_EXCEPTIONS
     try {
-      boost::alloc_construct_n(get_allocator(), data_, init.size(), init.begin());
-      size_ = init.size();
+#endif
+
+      auto       alloc_ = alloc;
+      auto const count  = init.size();
+
+      data_ = {std::allocator_traits<Allocator>::allocate(alloc_, count), deleter(alloc, count)};
+
+      boost::alloc_construct_n(alloc_, data(), init.size(), init.begin());
+
+#ifndef BOOST_NO_EXCEPTIONS
     }
     catch (std::exception const& ex) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, init.size());
       boost::throw_exception(ex);
-    }
-    catch (...) {
-      std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, init.size());
-      throw;
     }
 #endif
   }
 
   ~dynamic_array()
   {
-    boost::alloc_destroy_n(get_allocator(), data_, size_);
-    std::allocator_traits<Allocator>::deallocate(get_allocator(), data_, size_);
+    auto alloc = get_allocator();
+    boost::alloc_destroy_n(alloc, data(), size());
   }
 
   auto
   get_allocator() const -> allocator_type
   {
-    return boost::empty_value<Allocator, 0>::get();
+    return data_.get_deleter().get_allocator();
   }
 
   auto
   size() const noexcept -> size_type
   {
-    return size_;
+    return data_.get_deleter().size;
   }
 
   auto
   data() noexcept -> pointer
   {
-    return data_;
+    return data_.get();
   }
 
   auto
   data() const noexcept -> const_pointer
   {
-    return data_;
+    return data_.get();
   }
 
   auto
@@ -320,7 +339,7 @@ public:
   {
     return const_iterator{data() + size()};
   }
-}; // namespace sleip
+};
 } // namespace sleip
 
 #endif // SLEIP_DYNAMIC_ARRAY_HPP_
