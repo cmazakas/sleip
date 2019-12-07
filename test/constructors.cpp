@@ -78,8 +78,8 @@ test_value_constructible_throwing()
   struct throwing
   {
     std::size_t&         idx;
-    std::array<char, 5>& c_out;
-    std::array<char, 5>& d_out;
+    std::array<char, 6>& c_out;
+    std::array<char, 6>& d_out;
 
     throwing() = delete;
     throwing(throwing const& other)
@@ -87,24 +87,23 @@ test_value_constructible_throwing()
       , c_out(other.c_out)
       , d_out(other.d_out)
     {
-      std::cout << "Making a copy! (" << idx << ")\n";
+      if ((idx + 1) == 6) { throw 42; }
 
       c_out[idx] = static_cast<char>('a' + idx);
       ++idx;
-
-      if (idx == 5) { throw 42; }
     }
 
     throwing(throwing&&) = delete;
 
     ~throwing()
     {
+      if (idx == -1) { return; }
       d_out[5 - idx] = static_cast<char>('a' + idx - 1);
-      std::cout << d_out[5 - idx] << "\n";
+
       --idx;
     }
 
-    throwing(std::size_t& idx_, std::array<char, 5>& c_out_, std::array<char, 5>& d_out_)
+    throwing(std::size_t& idx_, std::array<char, 6>& c_out_, std::array<char, 6>& d_out_)
       : idx(idx_)
       , c_out(c_out_)
       , d_out(d_out_)
@@ -112,8 +111,8 @@ test_value_constructible_throwing()
     }
   };
 
-  auto constructor_out = std::array<char, 5>{};
-  auto destructor_out  = std::array<char, 5>{};
+  auto constructor_out = std::array<char, 6>{};
+  auto destructor_out  = std::array<char, 6>{};
   auto idx             = std::size_t{0};
 
   auto const value = throwing(idx, constructor_out, destructor_out);
@@ -121,13 +120,12 @@ test_value_constructible_throwing()
   auto const expected_c_out = std::string_view("abcde");
   auto const expected_d_out = std::string_view("edcba");
 
-  BOOST_TEST_THROWS((sleip::dynamic_array<throwing>(5, value)), int);
+  BOOST_TEST_THROWS((sleip::dynamic_array<throwing>(6, value)), int);
 
-  BOOST_TEST_ALL_EQ(constructor_out.begin(), constructor_out.end(), expected_c_out.begin(),
+  BOOST_TEST_ALL_EQ(constructor_out.begin(), constructor_out.end() - 1, expected_c_out.begin(),
                     expected_c_out.end());
 
-  std::cout << "testing container equality now\n";
-  BOOST_TEST_ALL_EQ(destructor_out.begin(), destructor_out.end(), expected_d_out.begin(),
+  BOOST_TEST_ALL_EQ(destructor_out.begin(), destructor_out.end() - 1, expected_d_out.begin(),
                     expected_d_out.end());
 }
 
