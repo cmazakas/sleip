@@ -310,7 +310,7 @@ public:
   {
     return const_iterator{data() + size()};
   }
-}; // namespace sleip
+};
 } // namespace sleip
 
 #endif // SLEIP_DYNAMIC_ARRAY_HPP_
