@@ -6,7 +6,8 @@
 #include <boost/core/lightweight_test.hpp>
 
 #include <algorithm>
-#include <iostream>
+#include <cstddef>
+#include <array>
 
 namespace pmr = boost::container::pmr;
 
