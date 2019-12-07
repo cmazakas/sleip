@@ -5,6 +5,7 @@
 #include <boost/core/empty_value.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/config.hpp>
+#include <boost/iterator/iterator_concepts.hpp>
 
 #include <cstddef>
 #include <iterator>
@@ -132,6 +133,9 @@ public:
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
+    BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<ForwardIterator>) );
+    BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<ForwardIterator>) );
+
     auto const count = static_cast<size_type>(std::distance(first, last));
 
     auto& alloc_ = boost::empty_value<Allocator, 0>::get();
