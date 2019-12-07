@@ -185,7 +185,7 @@ test_initializer_list_constructible()
 {
   auto buf = sleip::dynamic_array<int>{1, 2, 3, 4, 5};
 
-  auto const nums = std::initializer_list{1, 2, 3, 4, 5};
+  auto const nums = std::initializer_list<int>{1, 2, 3, 4, 5};
 
   BOOST_TEST_EQ(buf.size(), 5);
   BOOST_TEST_ALL_EQ(buf.begin(), buf.end(), nums.begin(), nums.end());
