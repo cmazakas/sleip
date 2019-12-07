@@ -246,9 +246,50 @@ public:
 
   ~dynamic_array()
   {
+    if (data_ == nullptr && size_ == 0) { return; }
+
     auto& alloc = boost::empty_value<Allocator, 0>::get();
     boost::alloc_destroy_n(alloc, data_, size_);
     std::allocator_traits<Allocator>::deallocate(alloc, data_, size_);
+  }
+
+  auto
+  operator=(dynamic_array const& other) & -> dynamic_array&
+  {
+    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+
+    if constexpr (std::allocator_traits<
+                    allocator_type>::propagate_on_container_copy_assignment::value) {
+      alloc_ = other.get_allocator();
+    }
+
+    if (alloc_ == other.get_allocator()) {
+      auto tmp = dynamic_array(other, alloc_);
+
+      boost::alloc_destroy_n(alloc_, data_, size_);
+      std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
+
+      data_ = tmp.data_;
+      size_ = tmp.size_;
+
+      tmp.data_ = nullptr;
+      tmp.size_ = 0;
+
+    } else {
+      auto tmp      = dynamic_array(other, other.get_allocator());
+      auto self_cpy = dynamic_array(tmp.begin(), tmp.end(), alloc_);
+
+      boost::alloc_destroy_n(alloc_, data_, size_);
+      std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
+
+      data_ = self_cpy.data_;
+      size_ = self_cpy.size_;
+
+      self_cpy.data_ = nullptr;
+      self_cpy.size_ = 0;
+    }
+
+    return *this;
   }
 
   auto
