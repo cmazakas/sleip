@@ -72,6 +72,12 @@ test_value_constructible()
   BOOST_TEST(std::all_of(buf.begin(), buf.end(), [=](auto const v) { return v == value; }));
 }
 
+#ifdef BOOST_NO_EXCEPTIONS
+void
+test_value_constructible_throwing()
+{
+}
+#else
 void
 test_value_constructible_throwing()
 {
@@ -128,6 +134,7 @@ test_value_constructible_throwing()
   BOOST_TEST_ALL_EQ(destructor_out.begin(), destructor_out.end() - 1, expected_d_out.begin(),
                     expected_d_out.end());
 }
+#endif
 
 void
 test_size_constructible()
@@ -140,6 +147,12 @@ test_size_constructible()
   BOOST_TEST(std::all_of(buf.begin(), buf.end(), [](auto const v) { return v == int{}; }));
 }
 
+#ifdef BOOST_NO_EXCEPTIONS
+void
+test_size_constructible_throwing()
+{
+}
+#else
 void
 test_size_constructible_throwing()
 {
@@ -154,6 +167,7 @@ test_size_constructible_throwing()
 
   BOOST_TEST_THROWS((sleip::dynamic_array<foo_throwing>(count)), int);
 }
+#endif
 
 void
 test_range_constructible()
