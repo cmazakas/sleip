@@ -242,8 +242,9 @@ public:
 
   ~dynamic_array()
   {
-    auto alloc = get_allocator();
-    boost::alloc_destroy_n(alloc, data(), size());
+    auto& alloc = boost::empty_value<Allocator, 0>::get();
+    boost::alloc_destroy_n(alloc, data_, size_);
+    std::allocator_traits<Allocator>::deallocate(alloc, data_, size_);
   }
 
   auto
