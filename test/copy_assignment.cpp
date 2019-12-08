@@ -174,18 +174,13 @@ test_copy_assignment_non_equal_allocators_throwing()
     int x = 0;
 
     throwing() = default;
-    throwing(throwing const&)
-    {
-      std::cout << "in copy constructor\n";
-      throw 42;
-    };
+    throwing(throwing const&) { throw 42; };
 
     throwing(throwing&&) = delete;
 
     auto
     operator=(throwing const&) -> throwing&
     {
-      std::cout << "in copy assignment operator\n";
       throw 42;
       return *this;
     }
@@ -217,7 +212,13 @@ test_copy_assignment_non_equal_allocators_throwing()
 
     BOOST_TEST_EQ(a.size(), 0);
     BOOST_TEST_EQ(a.data(), nullptr);
-    BOOST_TEST_EQ(buff_resource.remaining_storage(), mem.size());
+
+    // TODO: does this break the strong exception guarantee?
+    // technically, deallocate is called but in the case of a monotonic_buffer_resource, deallocate
+    // is a no-op so even though we release the temporary storage we acquire, its effects are felt
+    // by the user
+    //
+    BOOST_TEST_EQ(buff_resource.remaining_storage(), 0);
   }
 
   // non-empty
@@ -241,7 +242,11 @@ test_copy_assignment_non_equal_allocators_throwing()
     BOOST_TEST_THROWS((a = b), int);
 
     BOOST_TEST_EQ(a.size(), size);
-    BOOST_TEST_EQ(buff_resource.remaining_storage(), mem.size() - size * sizeof(throwing));
+
+    // TODO: does this break the strong exception guarantee?
+    //
+    BOOST_TEST_EQ(buff_resource.remaining_storage(),
+                  mem.size() - (size + size / 2) * sizeof(throwing));
   }
 }
 
