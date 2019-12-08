@@ -291,6 +291,52 @@ public:
   }
 
   auto
+    operator=(dynamic_array&& other) &
+    noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
+             std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&
+  {
+    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+
+    if (alloc_ == other.get_allocator()) {
+      if constexpr (std::allocator_traits<
+                      Allocator>::propagate_on_container_move_assignment::value) {
+        alloc_ = std::move(static_cast<boost::empty_value<Allocator, 0>&>(other).get());
+      }
+
+      boost::alloc_destroy_n(alloc_, data_, size_);
+      std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
+
+      data_ = other.data_;
+      size_ = other.size_;
+
+      other.data_ = nullptr;
+      other.size_ = 0;
+
+      return *this;
+    }
+
+    auto a = std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value
+               ? other.get_allocator()
+               : alloc_;
+
+    auto const count = other.size();
+
+    auto d = std::unique_ptr<T[], dealloc>(std::allocator_traits<Allocator>::allocate(a, count),
+                                           dealloc(a, count));
+
+    detail::alloc_move_construct_n(a, d.get(), other.size(), other.begin());
+
+    boost::alloc_destroy_n(alloc_, data_, size_);
+    std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
+
+    data_  = d.release();
+    size_  = count;
+    alloc_ = a;
+
+    return *this;
+  }
+
+  auto
   get_allocator() const -> allocator_type
   {
     return boost::empty_value<Allocator, 0>::get();
