@@ -413,6 +413,59 @@ public:
   {
     return const_iterator{data() + size()};
   }
+
+  auto
+  at(size_type pos) & -> reference
+  {
+    if (!(pos < size())) {
+      boost::throw_exception(
+        std::out_of_range("sleip::dynamic_array::at -> size_type pos is larger than size()"));
+    }
+
+    return data_[pos];
+  }
+
+  auto
+  at(size_type pos) const& -> const_reference
+  {
+    if (!(pos < size())) {
+      boost::throw_exception(
+        std::out_of_range("sleip::dynamic_array::at -> size_type pos is larger than size()"));
+    }
+
+    return data_[pos];
+  }
+
+  auto operator[](size_type pos) & -> reference { return data_[pos]; }
+  auto operator[](size_type pos) const& -> const_reference { return data_[pos]; }
+
+  auto
+  front() & -> reference
+  {
+    return *begin();
+  }
+
+  auto
+  front() const& -> const_reference
+  {
+    return *cbegin();
+  }
+
+  auto
+  back() & -> reference
+  {
+    auto tmp = end();
+    --tmp;
+    return *tmp;
+  }
+
+  auto
+  back() const& -> const_reference
+  {
+    auto tmp = cend();
+    --tmp;
+    return *tmp;
+  }
 };
 } // namespace sleip
 
