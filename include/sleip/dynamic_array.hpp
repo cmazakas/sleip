@@ -415,6 +415,42 @@ public:
   }
 
   auto
+  rbegin() noexcept -> reverse_iterator
+  {
+    return std::make_reverse_iterator(end());
+  }
+
+  auto
+  rbegin() const noexcept -> const_reverse_iterator
+  {
+    return std::make_reverse_iterator(cend());
+  }
+
+  auto
+  crbegin() const noexcept -> const_reverse_iterator
+  {
+    return std::make_reverse_iterator(cend());
+  }
+
+  auto
+  rend() noexcept -> reverse_iterator
+  {
+    return std::make_reverse_iterator(begin());
+  }
+
+  auto
+  rend() const noexcept -> const_reverse_iterator
+  {
+    return std::make_reverse_iterator(cbegin());
+  }
+
+  auto
+  crend() const noexcept -> const_reverse_iterator
+  {
+    return std::make_reverse_iterator(cbegin());
+  }
+
+  auto
   at(size_type pos) & -> reference
   {
     if (!(pos < size())) {
