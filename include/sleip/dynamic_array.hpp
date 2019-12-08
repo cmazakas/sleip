@@ -337,6 +337,24 @@ public:
   }
 
   auto
+  operator=(std::initializer_list<T> ilist) & -> dynamic_array&
+  {
+    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto  tmp    = dynamic_array(ilist, alloc_);
+
+    boost::alloc_destroy_n(alloc_, data_, size_);
+    std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
+
+    data_ = tmp.data_;
+    size_ = tmp.size_;
+
+    tmp.data_ = nullptr;
+    tmp.size_ = 0;
+
+    return *this;
+  }
+
+  auto
   get_allocator() const -> allocator_type
   {
     return boost::empty_value<Allocator, 0>::get();

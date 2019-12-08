@@ -14,3 +14,5 @@ target_link_libraries(copy_assignment PRIVATE Boost::container)
 
 sleip_add_test(move_assignment)
 target_link_libraries(move_assignment PRIVATE Boost::container)
+
+sleip_add_test(initializer_list_assignment)
