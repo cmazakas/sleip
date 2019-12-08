@@ -15,6 +15,20 @@
 
 namespace sleip
 {
+namespace detail
+{
+template <class A, class T, class I>
+inline void
+alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
+{
+  ::boost::detail::alloc_destroyer<A, T> hold(a, p);
+  for (std::size_t& i = hold.size(); i < n; void(++i), void(++b)) {
+    std::allocator_traits<A>::construct(a, p + i, std::move_if_noexcept(*b));
+  }
+  hold.size() = 0;
+}
+} // namespace detail
+
 template <class T, class Allocator = std::allocator<T>>
 struct dynamic_array;
 
@@ -204,39 +218,15 @@ public:
       return;
     }
 
-    auto idx = size_type{};
+    auto const count = other.size();
 
-#ifndef BOOST_NO_EXCEPTIONS
-    try {
-#endif
-      auto const count = other.size();
+    auto d = std::unique_ptr<T[], dealloc>(
+      std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-      auto d = std::unique_ptr<T[], dealloc>(
-        std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
+    detail::alloc_move_construct_n(alloc_, d.get(), other.size(), other.begin());
 
-      for (idx = 0; idx < other.size(); ++idx) {
-        std::allocator_traits<Allocator>::construct(alloc_, d.get(),
-                                                    std::move_if_noexcept(other.data_[idx]));
-      }
-
-      data_ = d.release();
-      size_ = count;
-
-#ifndef BOOST_NO_EXCEPTIONS
-    }
-    catch (std::exception const& ex) {
-      for (size_type jdx = 0; jdx <= idx; ++jdx) {
-        std::allocator_traits<Allocator>::destroy(alloc_, data() + idx - jdx);
-      }
-      boost::throw_exception(ex);
-    }
-    catch (...) {
-      for (size_type jdx = 0; jdx <= idx; ++jdx) {
-        std::allocator_traits<Allocator>::destroy(alloc_, data() + idx - jdx);
-      }
-      throw;
-    }
-#endif
+    data_ = d.release();
+    size_ = count;
   }
 
   dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator())
