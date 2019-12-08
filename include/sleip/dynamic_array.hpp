@@ -502,6 +502,18 @@ public:
     --tmp;
     return *tmp;
   }
+
+  auto
+  empty() const noexcept -> bool
+  {
+    return size_ == 0;
+  }
+
+  auto
+  max_size() const noexcept -> size_type
+  {
+    return -1;
+  }
 };
 } // namespace sleip
 
