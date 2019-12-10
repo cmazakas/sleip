@@ -60,15 +60,6 @@ private:
     Allocator   alloc;
     std::size_t size = 0;
 
-    dealloc(dealloc const&) = delete;
-
-    dealloc(dealloc&& other) noexcept
-      : alloc(std::move(other.get_allocator()))
-      , size{other.size}
-    {
-      other.size = 0;
-    };
-
     dealloc(Allocator const& alloc_, std::size_t size_)
       : alloc(alloc_)
       , size{size_}
@@ -76,30 +67,9 @@ private:
     }
 
     auto
-    operator=(dealloc const&) & -> dealloc& = delete;
-
-    auto
-      operator=(dealloc&& other) &
-      noexcept -> dealloc&
-    {
-      alloc = std::move(other.alloc);
-
-      size       = other.size;
-      other.size = 0;
-
-      return *this;
-    }
-
-    auto
     operator()(T* ptr) -> void
     {
       std::allocator_traits<Allocator>::deallocate(alloc, ptr, size);
-    }
-
-    auto
-    get_allocator() noexcept -> Allocator&
-    {
-      return alloc;
     }
   };
 
