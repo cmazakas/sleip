@@ -9,7 +9,6 @@
 #include <vector>
 #include <array>
 #include <cstddef>
-#include <iostream>
 
 namespace pmr = boost::container::pmr;
 
