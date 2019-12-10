@@ -9,7 +9,6 @@
 #include <string>
 #include <array>
 #include <string_view>
-#include <iostream>
 
 #include <boost/core/lightweight_test.hpp>
 
