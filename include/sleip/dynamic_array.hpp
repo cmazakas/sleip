@@ -6,6 +6,7 @@
 #include <boost/throw_exception.hpp>
 #include <boost/config.hpp>
 #include <boost/iterator/iterator_concepts.hpp>
+#include <boost/assert.hpp>
 
 #include <cstddef>
 #include <iterator>
@@ -478,18 +479,21 @@ public:
   auto
   front() & -> reference
   {
+    BOOST_ASSERT(!empty());
     return *begin();
   }
 
   auto
   front() const& -> const_reference
   {
+    BOOST_ASSERT(!empty());
     return *cbegin();
   }
 
   auto
   back() & -> reference
   {
+    BOOST_ASSERT(!empty());
     auto tmp = end();
     --tmp;
     return *tmp;
@@ -498,6 +502,7 @@ public:
   auto
   back() const& -> const_reference
   {
+    BOOST_ASSERT(!empty());
     auto tmp = cend();
     --tmp;
     return *tmp;
