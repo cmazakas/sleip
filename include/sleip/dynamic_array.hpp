@@ -57,17 +57,17 @@ public:
 private:
   struct dealloc
   {
-    Allocator   alloc;
+    Allocator&  alloc;
     std::size_t size = 0;
 
-    dealloc(Allocator const& alloc_, std::size_t size_)
+    dealloc(Allocator& alloc_, std::size_t size_)
       : alloc(alloc_)
       , size{size_}
     {
     }
 
     auto
-    operator()(T* ptr) -> void
+    operator()(T* ptr) const -> void
     {
       std::allocator_traits<Allocator>::deallocate(alloc, ptr, size);
     }
