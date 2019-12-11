@@ -54,11 +54,40 @@ test_swap()
   BOOST_TEST_EQ(b.size(), 3 * size);
 }
 
+void
+test_member_swap()
+{
+  constexpr auto const size = std::size_t{16};
+
+  auto a = sleip::dynamic_array<int>(size, 2);
+  auto b = sleip::dynamic_array<int>(3 * size, -3);
+
+  auto const* const old_a = a.data();
+  auto const* const old_b = b.data();
+
+  a.swap(b);
+
+  BOOST_TEST_EQ(a.data(), old_b);
+  BOOST_TEST_EQ(b.data(), old_a);
+
+  BOOST_TEST_EQ(a.size(), 3 * size);
+  BOOST_TEST_EQ(b.size(), size);
+
+  b.swap(a);
+
+  BOOST_TEST_EQ(a.data(), old_a);
+  BOOST_TEST_EQ(b.data(), old_b);
+
+  BOOST_TEST_EQ(a.size(), size);
+  BOOST_TEST_EQ(b.size(), 3 * size);
+}
+
 int
 main()
 {
   test_fill();
   test_swap();
+  test_member_swap();
 
   return boost::report_errors();
 }
