@@ -509,6 +509,20 @@ public:
 
     for (size_type idx = num_rolls * unroll_size; idx < size_; ++idx) { data_[idx] = value; }
   }
+
+  auto
+    swap(dynamic_array& other) &
+    noexcept -> void
+  {
+    auto tmp_data = data_;
+    auto tmp_size = size_;
+
+    data_ = other.data_;
+    size_ = other.size_;
+
+    other.data_ = tmp_data;
+    other.size_ = tmp_size;
+  }
 };
 } // namespace sleip
 
