@@ -512,8 +512,15 @@ public:
 
   auto
     swap(dynamic_array& other) &
-    noexcept -> void
+    noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value ||
+             std::allocator_traits<Allocator>::is_always_equal::value) -> void
   {
+    if constexpr (std::allocator_traits<allocator_type>::propagate_on_container_swap::value) {
+      auto& alloc_       = boost::empty_value<Allocator, 0>::get();
+      auto& other_alloc_ = static_cast<boost::empty_value<Allocator, 0>&>(other).get();
+      swap(alloc_, other_alloc_);
+    }
+
     auto tmp_data = data_;
     auto tmp_size = size_;
 
