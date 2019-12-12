@@ -43,10 +43,10 @@ public:
   using difference_type        = std::ptrdiff_t;
   using reference              = value_type&;
   using const_reference        = value_type const&;
-  using pointer                = value_type*;
-  using const_pointer          = value_type const*;
-  using iterator               = pointer;
-  using const_iterator         = const_pointer;
+  using pointer                = typename std::allocator_traits<Allocator>::pointer;
+  using const_pointer          = typename std::allocator_traits<Allocator>::const_pointer;
+  using iterator               = value_type*;
+  using const_iterator         = value_type const*;
   using reverse_iterator       = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -57,6 +57,8 @@ public:
 private:
   struct dealloc
   {
+    using pointer = typename dynamic_array::pointer;
+
     Allocator&  alloc;
     std::size_t size = 0;
 
@@ -67,13 +69,13 @@ private:
     }
 
     auto
-    operator()(T* ptr) const -> void
+    operator()(pointer ptr) const -> void
     {
       std::allocator_traits<Allocator>::deallocate(alloc, ptr, size);
     }
   };
 
-  T*          data_ = nullptr;
+  pointer     data_ = nullptr;
   std::size_t size_ = 0;
 
 public:
@@ -92,7 +94,9 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    boost::alloc_construct_n(alloc_, d.get(), count, std::addressof(value), 1);
+    auto* const p = std::addressof(*(d.get()));
+
+    boost::alloc_construct_n(alloc_, p, count, std::addressof(value), 1);
 
     data_ = d.release();
     size_ = count;
@@ -106,7 +110,9 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    boost::alloc_construct_n(alloc_, d.get(), count);
+    auto* const p = std::addressof(*(d.get()));
+
+    boost::alloc_construct_n(alloc_, p, count);
 
     data_ = d.release();
     size_ = count;
@@ -128,7 +134,9 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    boost::alloc_construct_n(alloc_, d.get(), count, first);
+    auto* const p = std::addressof(*(d.get()));
+
+    boost::alloc_construct_n(alloc_, p, count, first);
 
     data_ = d.release();
     size_ = count;
@@ -146,7 +154,9 @@ public:
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
       dealloc(alloc_, other.size()));
 
-    boost::alloc_construct_n(alloc_, d.get(), other.size(), other.begin());
+    auto* const p = std::addressof(*(d.get()));
+
+    boost::alloc_construct_n(alloc_, p, other.size(), other.begin());
 
     data_ = d.release();
     size_ = other.size();
@@ -161,7 +171,9 @@ public:
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
       dealloc(alloc_, other.size()));
 
-    boost::alloc_construct_n(alloc_, d.get(), other.size(), other.begin());
+    auto* const p = std::addressof(*(d.get()));
+
+    boost::alloc_construct_n(alloc_, p, other.size(), other.begin());
 
     data_ = d.release();
     size_ = other.size();
@@ -194,7 +206,9 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    detail::alloc_move_construct_n(alloc_, d.get(), other.size(), other.begin());
+    auto* const p = std::addressof(*(d.get()));
+
+    detail::alloc_move_construct_n(alloc_, p, other.size(), other.begin());
 
     data_ = d.release();
     size_ = count;
@@ -210,14 +224,18 @@ public:
     if (data_ == nullptr && size_ == 0) { return; }
 
     auto& alloc = boost::empty_value<Allocator, 0>::get();
-    boost::alloc_destroy_n(alloc, data_, size_);
+
+    auto* const p = std::addressof(*data_);
+
+    boost::alloc_destroy_n(alloc, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc, data_, size_);
   }
 
   auto
   operator=(dynamic_array const& other) & -> dynamic_array&
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto&       alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto* const p      = std::addressof(*(data_));
 
     if (alloc_ == other.get_allocator()) {
       auto tmp = dynamic_array(other, alloc_);
@@ -227,7 +245,7 @@ public:
         alloc_ = other.get_allocator();
       }
 
-      boost::alloc_destroy_n(alloc_, data_, size_);
+      boost::alloc_destroy_n(alloc_, p, size_);
       std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
       data_ = tmp.data_;
@@ -244,7 +262,7 @@ public:
 
     auto tmp = dynamic_array(other.begin(), other.end(), a);
 
-    boost::alloc_destroy_n(alloc_, data_, size_);
+    boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
     data_ = tmp.data_;
@@ -266,7 +284,8 @@ public:
     noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
              std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto&       alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto* const p      = std::addressof(*(data_));
 
     if (alloc_ == other.get_allocator()) {
       if constexpr (std::allocator_traits<
@@ -274,7 +293,7 @@ public:
         alloc_ = std::move(static_cast<boost::empty_value<Allocator, 0>&>(other).get());
       }
 
-      boost::alloc_destroy_n(alloc_, data_, size_);
+      boost::alloc_destroy_n(alloc_, p, size_);
       std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
       data_ = other.data_;
@@ -295,9 +314,9 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(std::allocator_traits<Allocator>::allocate(a, count),
                                            dealloc(a, count));
 
-    detail::alloc_move_construct_n(a, d.get(), other.size(), other.begin());
+    detail::alloc_move_construct_n(a, std::addressof(*(d.get())), other.size(), other.begin());
 
-    boost::alloc_destroy_n(alloc_, data_, size_);
+    boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
     data_  = d.release();
@@ -313,7 +332,9 @@ public:
     auto& alloc_ = boost::empty_value<Allocator, 0>::get();
     auto  tmp    = dynamic_array(ilist, alloc_);
 
-    boost::alloc_destroy_n(alloc_, data_, size_);
+    auto* const p = std::addressof(*(data_));
+
+    boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
     data_ = tmp.data_;
@@ -338,15 +359,15 @@ public:
   }
 
   auto
-  data() noexcept -> pointer
+  data() noexcept -> T*
   {
-    return data_;
+    return std::addressof(*data_);
   }
 
   auto
-  data() const noexcept -> const_pointer
+  data() const noexcept -> T const*
   {
-    return data_;
+    return std::addressof(*data_);
   }
 
   auto
