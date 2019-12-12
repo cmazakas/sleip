@@ -1,4 +1,5 @@
-find_package(Boost 1.71 REQUIRED container)
+find_package(Boost 1.71 REQUIRED container date_time)
+find_package(Threads REQUIRED)
 
 function(sleip_add_test test_name)
   add_executable(${test_name} "${test_name}.cpp")
@@ -20,3 +21,9 @@ sleip_add_test(element_access)
 sleip_add_test(reverse_iterators)
 sleip_add_test(capacity)
 sleip_add_test(operations)
+
+sleip_add_test(fancy_pointer)
+if (UNIX)
+  target_link_libraries(fancy_pointer PRIVATE Threads::Threads)
+  target_link_options(fancy_pointer PRIVATE "-lrt")
+endif()
