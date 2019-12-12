@@ -35,7 +35,7 @@ test_shmem_allocator()
 
   auto a =
     sleip::dynamic_array<int, ipc::allocator<int, ipc::managed_shared_memory::segment_manager>>(
-      std::size_t{128}, -1, allocator_instance);
+      std::size_t{128}, 1, allocator_instance);
 
   auto b =
     sleip::dynamic_array<int, ipc::allocator<int, ipc::managed_shared_memory::segment_manager>>(
@@ -46,6 +46,8 @@ test_shmem_allocator()
 
   BOOST_TEST_EQ(a.size(), 128);
   BOOST_TEST_EQ(b.size(), a.size());
+
+  a.fill(-1);
 
   BOOST_TEST_ALL_EQ(a.begin(), a.end(), b.begin(), b.end());
 }
