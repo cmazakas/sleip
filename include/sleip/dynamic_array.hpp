@@ -1,19 +1,22 @@
 #ifndef SLEIP_DYNAMIC_ARRAY_HPP_
 #define SLEIP_DYNAMIC_ARRAY_HPP_
 
-#include <boost/core/alloc_construct.hpp>
-#include <boost/core/pointer_traits.hpp>
-#include <boost/core/empty_value.hpp>
-#include <boost/throw_exception.hpp>
-#include <boost/config.hpp>
-#include <boost/iterator/iterator_concepts.hpp>
 #include <boost/assert.hpp>
+#include <boost/config.hpp>
+#include <boost/throw_exception.hpp>
+
+#include <boost/core/alloc_construct.hpp>
+#include <boost/core/empty_value.hpp>
+#include <boost/core/noinit_adaptor.hpp>
+#include <boost/core/pointer_traits.hpp>
+
+#include <boost/iterator/iterator_concepts.hpp>
 
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 namespace sleip
 {
@@ -33,6 +36,9 @@ alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
 
 template <class T, class Allocator = std::allocator<T>>
 struct dynamic_array;
+
+template <class T, class Allocator = std::allocator<T>>
+using dynamic_array_noinit = dynamic_array<T, boost::noinit_adaptor<Allocator>>;
 
 template <class T, class Allocator>
 struct dynamic_array : boost::empty_value<Allocator, 0>
