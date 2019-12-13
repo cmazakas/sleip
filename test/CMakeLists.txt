@@ -24,6 +24,5 @@ sleip_add_test(operations)
 
 sleip_add_test(fancy_pointer)
 if (UNIX)
-  target_link_libraries(fancy_pointer PRIVATE Threads::Threads)
-  target_link_options(fancy_pointer PRIVATE "-lrt")
+  target_link_libraries(fancy_pointer PRIVATE Threads::Threads rt)
 endif()
