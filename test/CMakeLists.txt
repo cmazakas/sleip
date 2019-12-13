@@ -1,6 +1,10 @@
 find_package(Boost 1.71 REQUIRED container date_time)
 find_package(Threads REQUIRED)
 
+if (UNIX)
+  set(THREADS_PREFER_PTHREAD_FLAG ON CACHE BOOL "")
+endif()
+
 function(sleip_add_test test_name)
   add_executable(${test_name} "${test_name}.cpp")
   target_link_libraries(${test_name} PRIVATE dynamic_array)
