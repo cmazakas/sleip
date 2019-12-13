@@ -2,6 +2,7 @@
 #define SLEIP_DYNAMIC_ARRAY_HPP_
 
 #include <boost/core/alloc_construct.hpp>
+#include <boost/core/pointer_traits.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/config.hpp>
@@ -94,7 +95,7 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = std::addressof(*(d.get()));
+    auto* const p = boost::to_address(d.get());
 
     boost::alloc_construct_n(alloc_, p, count, std::addressof(value), 1);
 
@@ -110,7 +111,7 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = std::addressof(*(d.get()));
+    auto* const p = boost::to_address(d.get());
 
     boost::alloc_construct_n(alloc_, p, count);
 
@@ -134,7 +135,7 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = std::addressof(*(d.get()));
+    auto* const p = boost::to_address(d.get());
 
     boost::alloc_construct_n(alloc_, p, count, first);
 
@@ -154,7 +155,7 @@ public:
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
       dealloc(alloc_, other.size()));
 
-    auto* const p = std::addressof(*(d.get()));
+    auto* const p = boost::to_address(d.get());
 
     boost::alloc_construct_n(alloc_, p, other.size(), other.begin());
 
@@ -171,7 +172,7 @@ public:
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
       dealloc(alloc_, other.size()));
 
-    auto* const p = std::addressof(*(d.get()));
+    auto* const p = boost::to_address(d.get());
 
     boost::alloc_construct_n(alloc_, p, other.size(), other.begin());
 
@@ -206,7 +207,7 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = std::addressof(*(d.get()));
+    auto* const p = boost::to_address(d.get());
 
     detail::alloc_move_construct_n(alloc_, p, other.size(), other.begin());
 
@@ -225,7 +226,7 @@ public:
 
     auto& alloc = boost::empty_value<Allocator, 0>::get();
 
-    auto* const p = std::addressof(*data_);
+    auto* const p = boost::to_address(data_);
 
     boost::alloc_destroy_n(alloc, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc, data_, size_);
@@ -235,7 +236,7 @@ public:
   operator=(dynamic_array const& other) & -> dynamic_array&
   {
     auto&       alloc_ = boost::empty_value<Allocator, 0>::get();
-    auto* const p      = std::addressof(*(data_));
+    auto* const p      = boost::to_address(data_);
 
     if (alloc_ == other.get_allocator()) {
       auto tmp = dynamic_array(other, alloc_);
@@ -285,7 +286,7 @@ public:
              std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&
   {
     auto&       alloc_ = boost::empty_value<Allocator, 0>::get();
-    auto* const p      = std::addressof(*(data_));
+    auto* const p      = boost::to_address(data_);
 
     if (alloc_ == other.get_allocator()) {
       if constexpr (std::allocator_traits<
@@ -314,7 +315,7 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(std::allocator_traits<Allocator>::allocate(a, count),
                                            dealloc(a, count));
 
-    detail::alloc_move_construct_n(a, std::addressof(*(d.get())), other.size(), other.begin());
+    detail::alloc_move_construct_n(a, boost::to_address(d.get()), other.size(), other.begin());
 
     boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
@@ -332,7 +333,7 @@ public:
     auto& alloc_ = boost::empty_value<Allocator, 0>::get();
     auto  tmp    = dynamic_array(ilist, alloc_);
 
-    auto* const p = std::addressof(*(data_));
+    auto* const p = boost::to_address(data_);
 
     boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
@@ -361,13 +362,13 @@ public:
   auto
   data() noexcept -> T*
   {
-    return std::addressof(*data_);
+    return boost::to_address(data_);
   }
 
   auto
   data() const noexcept -> T const*
   {
-    return std::addressof(*data_);
+    return boost::to_address(data_);
   }
 
   auto
