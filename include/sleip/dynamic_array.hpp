@@ -12,6 +12,7 @@
 
 #include <boost/iterator/iterator_concepts.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -559,6 +560,48 @@ public:
     other.size_ = tmp_size;
   }
 };
+
+template <class T, class Allocator>
+auto
+operator==(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
+{
+  return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <class T, class Allocator>
+auto
+operator!=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
+{
+  return !(lhs == rhs);
+}
+
+template <class T, class Allocator>
+auto
+operator<(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
+{
+  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <class T, class Allocator>
+auto
+operator>(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
+{
+  return !(lhs < rhs);
+}
+
+template <class T, class Allocator>
+auto
+operator<=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
+{
+  return (lhs == rhs) || (lhs < rhs);
+}
+
+template <class T, class Allocator>
+auto
+operator>=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
+{
+  return (lhs == rhs) || (lhs > rhs);
+}
 } // namespace sleip
 
 #endif // SLEIP_DYNAMIC_ARRAY_HPP_
