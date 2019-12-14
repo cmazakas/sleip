@@ -116,10 +116,8 @@ test_copy_assignment_non_equal_allocators()
 
     BOOST_TEST(alloc1 != alloc2);
 
-    auto const size = std::size_t{1024};
-
     auto a = sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(alloc1);
-    auto b = sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(size, 1, alloc2);
+    auto b = sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(1024, 1, alloc2);
 
     BOOST_TEST_EQ(a.size(), 0);
     BOOST_TEST_EQ(a.data(), nullptr);
@@ -142,7 +140,7 @@ test_copy_assignment_non_equal_allocators()
     BOOST_TEST(alloc1 != alloc2);
     BOOST_TEST_EQ(buff_resource.remaining_storage(), mem.size());
 
-    auto const size = std::size_t{1024};
+    auto const size = 1024;
 
     auto a = sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(size, -1, alloc1);
     auto b = sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(size / 2, 1, alloc2);

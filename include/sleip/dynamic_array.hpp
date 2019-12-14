@@ -23,6 +23,8 @@ namespace sleip
 {
 namespace detail
 {
+// copy-paste-modify the great glenfe's .Core code
+//
 template <class A, class T, class I>
 inline void
 alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
@@ -33,6 +35,54 @@ alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
   }
   hold.size() = 0;
 }
+
+// copy-paste-modify the iterator checking from libcxx's vector implementation
+// see:
+// https://github.com/llvm-mirror/libcxx/blob/8279a1399ec1db64f107b5f1d3966c3b8df28dd9/include/iterator
+//
+// for proper attribution to the authors and their work
+//
+template <class _Tp>
+struct __has_iterator_category
+{
+private:
+  struct __two
+  {
+    char __lx;
+    char __lxx;
+  };
+
+  template <class _Up>
+  static __two
+  __test(...);
+
+  template <class _Up>
+  static char
+  __test(typename _Up::iterator_category* = 0);
+
+public:
+  static const bool value = sizeof(__test<_Tp>(0)) == 1;
+};
+
+template <class _Tp, class _Up, bool = __has_iterator_category<std::iterator_traits<_Tp>>::value>
+struct __has_iterator_category_convertible_to
+  : public std::integral_constant<
+      bool,
+      std::is_convertible<typename std::iterator_traits<_Tp>::iterator_category, _Up>::value>
+
+{
+};
+
+template <class _Tp, class _Up>
+struct __has_iterator_category_convertible_to<_Tp, _Up, false> : public std::false_type
+{
+};
+
+template <class _Tp>
+struct __is_forward_iterator
+  : public __has_iterator_category_convertible_to<_Tp, std::forward_iterator_tag>
+{
+};
 } // namespace detail
 
 template <class T, class Allocator = std::allocator<T>>
@@ -128,7 +178,8 @@ public:
 
   // impose Forward over Input because we can't resize the allocation so we need to know the
   // range's size up-front
-  template <class ForwardIterator>
+  template <class ForwardIterator,
+            std::enable_if_t<detail::__is_forward_iterator<ForwardIterator>::value, int> = 0>
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
   {
