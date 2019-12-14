@@ -102,7 +102,7 @@ test_value_constructible_throwing()
 
     ~throwing()
     {
-      if (idx == -1) { return; }
+      if (idx == std::size_t(-1)) { return; }
       d_out[5 - idx] = static_cast<char>('a' + idx - 1);
 
       --idx;
