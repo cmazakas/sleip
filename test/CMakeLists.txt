@@ -1,9 +1,9 @@
-find_package(Boost 1.71 REQUIRED container)
-find_package(Threads REQUIRED)
-
 if (UNIX)
   set(THREADS_PREFER_PTHREAD_FLAG ON CACHE BOOL "")
 endif()
+
+find_package(Boost 1.71 REQUIRED container)
+find_package(Threads REQUIRED)
 
 function(sleip_add_test test_name)
   add_executable(${test_name} "${test_name}.cpp")
