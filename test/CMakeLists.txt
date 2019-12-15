@@ -1,4 +1,4 @@
-find_package(Boost 1.71 REQUIRED container date_time)
+find_package(Boost 1.71 REQUIRED container)
 find_package(Threads REQUIRED)
 
 if (UNIX)
