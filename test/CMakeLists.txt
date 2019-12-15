@@ -1,6 +1,4 @@
-if (UNIX)
-  set(THREADS_PREFER_PTHREAD_FLAG ON CACHE BOOL "")
-endif()
+set(THREADS_PREFER_PTHREAD_FLAG ON CACHE BOOL "")
 
 find_package(Boost 1.71 REQUIRED container)
 find_package(Threads REQUIRED)
