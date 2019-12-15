@@ -2,7 +2,7 @@
 
 include(CMakeFindDependencyMacro)
 
-find_dependency(Boost 1.70 REQUIRED)
+find_dependency(Boost 1.71 REQUIRED)
 
 if (UNIX)
   find_dependency(Threads REQUIRED)
