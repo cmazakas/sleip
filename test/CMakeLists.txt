@@ -25,8 +25,9 @@ sleip_add_test(capacity)
 sleip_add_test(operations)
 
 sleip_add_test(fancy_pointer)
-if (UNIX)
-  target_link_libraries(fancy_pointer PRIVATE Threads::Threads rt)
+target_link_libraries(fancy_pointer PRIVATE Threads::Threads)
+if (UNIX AND NOT APPLE)
+  target_link_libraries(fancy_pointer PRIVATE rt)
 endif()
 
 sleip_add_test(noinit)
