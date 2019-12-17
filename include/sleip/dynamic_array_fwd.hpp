@@ -20,7 +20,7 @@ struct dynamic_array;
 template <class T, class Allocator = std::allocator<T>>
 using dynamic_array_noinit = dynamic_array<T, boost::noinit_adaptor<Allocator>>;
 
-#ifdef SLEIP_HAS_PMR
+#if SLEIP_HAS_PMR
 namespace pmr
 {
 template <class T>
