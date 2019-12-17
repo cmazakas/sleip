@@ -93,8 +93,8 @@ struct dynamic_array : boost::empty_value<Allocator, 0>
 public:
   using value_type             = T;
   using allocator_type         = Allocator;
-  using size_type              = std::size_t;
-  using difference_type        = std::ptrdiff_t;
+  using size_type              = typename std::allocator_traits<Allocator>::size_type;
+  using difference_type        = typename std::allocator_traits<Allocator>::difference_type;
   using reference              = value_type&;
   using const_reference        = value_type const&;
   using pointer                = typename std::allocator_traits<Allocator>::pointer;
