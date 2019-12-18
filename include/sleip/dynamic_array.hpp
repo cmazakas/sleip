@@ -133,7 +133,8 @@ private:
   std::size_t size_ = 0;
 
 public:
-  dynamic_array() noexcept(noexcept(Allocator())){};
+  dynamic_array() noexcept(noexcept(Allocator()))
+    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}){};
 
   explicit dynamic_array(const Allocator& alloc) noexcept
     : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
