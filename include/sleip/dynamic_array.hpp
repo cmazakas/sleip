@@ -613,6 +613,7 @@ template <class T, class Allocator>
 auto
 operator==(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
+  if (lhs.size() != rhs.size()) { return false; }
   return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
@@ -627,6 +628,7 @@ template <class T, class Allocator>
 auto
 operator<(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
+  if (lhs.size() != rhs.size()) { return false; }
   return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
@@ -641,14 +643,14 @@ template <class T, class Allocator>
 auto
 operator<=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
-  return (lhs == rhs) || (lhs < rhs);
+  return !(rhs < lhs);
 }
 
 template <class T, class Allocator>
 auto
 operator>=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
-  return (lhs == rhs) || (lhs > rhs);
+  return !(lhs < rhs);
 }
 } // namespace sleip
 
