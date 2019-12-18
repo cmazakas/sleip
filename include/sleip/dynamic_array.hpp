@@ -88,7 +88,7 @@ struct __is_forward_iterator
 } // namespace detail
 
 template <class T, class Allocator>
-struct dynamic_array : boost::empty_value<Allocator, 0>
+struct dynamic_array : boost::empty_value<Allocator>
 {
 public:
   using value_type             = T;
@@ -134,17 +134,17 @@ private:
 
 public:
   dynamic_array() noexcept(noexcept(Allocator()))
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}){};
+    : boost::empty_value<Allocator>(boost::empty_init_t{}){};
 
   explicit dynamic_array(const Allocator& alloc) noexcept
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
   }
 
   dynamic_array(size_type count, T const& value, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
 
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
@@ -158,9 +158,9 @@ public:
   }
 
   explicit dynamic_array(size_type count, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
 
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
@@ -178,14 +178,14 @@ public:
   template <class ForwardIterator,
             std::enable_if_t<detail::__is_forward_iterator<ForwardIterator>::value, int> = 0>
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
     BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<ForwardIterator>) );
     BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<ForwardIterator>) );
 
     auto const count = static_cast<size_type>(std::distance(first, last));
 
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
 
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
@@ -199,12 +199,12 @@ public:
   }
 
   dynamic_array(dynamic_array const& other)
-    : boost::empty_value<Allocator, 0>(
+    : boost::empty_value<Allocator>(
         boost::empty_init_t{},
         std::allocator_traits<allocator_type>::select_on_container_copy_construction(
           other.get_allocator()))
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
 
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
@@ -219,9 +219,9 @@ public:
   }
 
   dynamic_array(dynamic_array const& other, Allocator const& alloc)
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
 
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
@@ -236,7 +236,7 @@ public:
   }
 
   dynamic_array(dynamic_array&& other) noexcept
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, std::move(other.get_allocator()))
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, std::move(other.get_allocator()))
     , data_(other.data_)
     , size_{other.size_}
   {
@@ -245,9 +245,9 @@ public:
   }
 
   dynamic_array(dynamic_array&& other, Allocator const& alloc)
-    : boost::empty_value<Allocator, 0>(boost::empty_init_t{}, alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
 
     if (alloc_ == other.get_allocator()) {
       data_       = other.data_;
@@ -279,7 +279,7 @@ public:
   {
     if (data_ == nullptr && size_ == 0) { return; }
 
-    auto& alloc = boost::empty_value<Allocator, 0>::get();
+    auto& alloc = boost::empty_value<Allocator>::get();
 
     auto* const p = boost::to_address(data_);
 
@@ -290,7 +290,7 @@ public:
   auto
   operator=(dynamic_array const& other) & -> dynamic_array&
   {
-    auto&       alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto&       alloc_ = boost::empty_value<Allocator>::get();
     auto* const p      = boost::to_address(data_);
 
     if (alloc_ == other.get_allocator()) {
@@ -340,13 +340,13 @@ public:
     noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
              std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&
   {
-    auto&       alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto&       alloc_ = boost::empty_value<Allocator>::get();
     auto* const p      = boost::to_address(data_);
 
     if (alloc_ == other.get_allocator()) {
       if constexpr (std::allocator_traits<
                       Allocator>::propagate_on_container_move_assignment::value) {
-        alloc_ = std::move(static_cast<boost::empty_value<Allocator, 0>&>(other).get());
+        alloc_ = std::move(static_cast<boost::empty_value<Allocator>&>(other).get());
       }
 
       boost::alloc_destroy_n(alloc_, p, size_);
@@ -385,7 +385,7 @@ public:
   auto
   operator=(std::initializer_list<T> ilist) & -> dynamic_array&
   {
-    auto& alloc_ = boost::empty_value<Allocator, 0>::get();
+    auto& alloc_ = boost::empty_value<Allocator>::get();
     auto  tmp    = dynamic_array(ilist, alloc_);
 
     auto* const p = boost::to_address(data_);
@@ -405,7 +405,7 @@ public:
   auto
   get_allocator() const -> allocator_type
   {
-    return boost::empty_value<Allocator, 0>::get();
+    return boost::empty_value<Allocator>::get();
   }
 
   auto
@@ -593,8 +593,8 @@ public:
              std::allocator_traits<Allocator>::is_always_equal::value) -> void
   {
     if constexpr (std::allocator_traits<allocator_type>::propagate_on_container_swap::value) {
-      auto& alloc_       = boost::empty_value<Allocator, 0>::get();
-      auto& other_alloc_ = static_cast<boost::empty_value<Allocator, 0>&>(other).get();
+      auto& alloc_       = boost::empty_value<Allocator>::get();
+      auto& other_alloc_ = static_cast<boost::empty_value<Allocator>&>(other).get();
       swap(alloc_, other_alloc_);
     }
 
