@@ -17,7 +17,7 @@ target_include_directories(
   dynamic_array
   INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/sleip-1.0.0>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/sleip-${PROJECT_VERSION}>
 )
 
 target_link_libraries(dynamic_array INTERFACE Boost::headers)
@@ -45,14 +45,14 @@ install(
     sleip-targets
 
   NAMESPACE Sleip::
-  DESTINATION lib/cmake/sleip-1.0.0
+  DESTINATION lib/cmake/sleip-${PROJECT_VERSION}
 )
 
 install(
   DIRECTORY
     include/
 
-  DESTINATION include/sleip-1.0.0
+  DESTINATION include/sleip-${PROJECT_VERSION}
   FILES_MATCHING PATTERN "*.hpp"
 )
 
@@ -66,12 +66,12 @@ write_basic_package_version_file(
 configure_package_config_file(
   ${CMAKE_CURRENT_LIST_DIR}/cmake/sleip-config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/sleip-config.cmake
-  INSTALL_DESTINATION lib/cmake/sleip-1.0.0
+  INSTALL_DESTINATION lib/cmake/sleip-${PROJECT_VERSION}
 )
 
 install(
   FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sleip-config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/sleip-config-version.cmake
-  DESTINATION lib/cmake/sleip-1.0.0
+  DESTINATION lib/cmake/sleip-${PROJECT_VERSION}
 )
