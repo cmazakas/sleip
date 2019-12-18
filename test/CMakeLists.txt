@@ -16,6 +16,7 @@ endfunction()
 
 sleip_add_test(container_traits)
 sleip_add_test(constructors)
+target_link_libraries(constructors PRIVATE Boost::container)
 
 sleip_add_test(copy_assignment)
 target_link_libraries(copy_assignment PRIVATE Boost::container)

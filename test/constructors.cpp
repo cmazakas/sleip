@@ -1,6 +1,7 @@
 #include <sleip/dynamic_array.hpp>
 
 #include <boost/core/default_allocator.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
 
 #include <memory>
 #include <iterator>
@@ -28,6 +29,8 @@ throw_exception(std::exception const& e)
 } // namespace boost
 #endif
 
+namespace pmr = boost::container::pmr;
+
 void
 test_default_constructible()
 {
@@ -40,6 +43,13 @@ test_default_constructible()
   BOOST_TEST_EQ(std::distance(buf.begin(), buf.end()), 0);
   BOOST_TEST_EQ(buf.data(), nullptr);
   BOOST_TEST(buf.get_allocator() == std::allocator<int>{});
+
+  sleip::dynamic_array<int, pmr::polymorphic_allocator<int>> pmr_buf;
+
+  BOOST_TEST_EQ(pmr_buf.size(), 0);
+  BOOST_TEST_EQ(std::distance(pmr_buf.begin(), pmr_buf.end()), 0);
+  BOOST_TEST_EQ(pmr_buf.data(), nullptr);
+  BOOST_TEST(pmr_buf.get_allocator() == pmr::polymorphic_allocator<int>{});
 }
 
 void
