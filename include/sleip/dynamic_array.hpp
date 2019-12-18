@@ -45,29 +45,29 @@ alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
 // for proper attribution to the authors and their work
 //
 template <class _Tp>
-struct __has_iterator_category
+struct has_iterator_category
 {
 private:
-  struct __two
+  struct two
   {
-    char __lx;
-    char __lxx;
+    char lx;
+    char lxx;
   };
 
   template <class _Up>
-  static __two
-  __test(...);
+  static two
+  test(...);
 
   template <class _Up>
   static char
-  __test(typename _Up::iterator_category* = 0);
+  test(typename _Up::iterator_category* = 0);
 
 public:
-  static const bool value = sizeof(__test<_Tp>(0)) == 1;
+  static const bool value = sizeof(test<_Tp>(0)) == 1;
 };
 
-template <class _Tp, class _Up, bool = __has_iterator_category<std::iterator_traits<_Tp>>::value>
-struct __has_iterator_category_convertible_to
+template <class _Tp, class _Up, bool = has_iterator_category<std::iterator_traits<_Tp>>::value>
+struct has_iterator_category_convertible_to
   : public std::integral_constant<
       bool,
       std::is_convertible<typename std::iterator_traits<_Tp>::iterator_category, _Up>::value>
@@ -76,13 +76,13 @@ struct __has_iterator_category_convertible_to
 };
 
 template <class _Tp, class _Up>
-struct __has_iterator_category_convertible_to<_Tp, _Up, false> : public std::false_type
+struct has_iterator_category_convertible_to<_Tp, _Up, false> : public std::false_type
 {
 };
 
 template <class _Tp>
-struct __is_forward_iterator
-  : public __has_iterator_category_convertible_to<_Tp, std::forward_iterator_tag>
+struct is_forward_iterator
+  : public has_iterator_category_convertible_to<_Tp, std::forward_iterator_tag>
 {
 };
 } // namespace detail
@@ -176,7 +176,7 @@ public:
   // impose Forward over Input because we can't resize the allocation so we need to know the
   // range's size up-front
   template <class ForwardIterator,
-            std::enable_if_t<detail::__is_forward_iterator<ForwardIterator>::value, int> = 0>
+            std::enable_if_t<detail::is_forward_iterator<ForwardIterator>::value, int> = 0>
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
