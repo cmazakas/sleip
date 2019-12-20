@@ -537,21 +537,7 @@ public:
   auto
   fill(T const& value) -> void
   {
-    constexpr auto const unroll_size = 8;
-    auto const           num_rolls   = size_ / unroll_size;
-
-    for (size_type idx = 0; idx < num_rolls; ++idx) {
-      data_[idx * unroll_size + 0] = value;
-      data_[idx * unroll_size + 1] = value;
-      data_[idx * unroll_size + 2] = value;
-      data_[idx * unroll_size + 3] = value;
-      data_[idx * unroll_size + 4] = value;
-      data_[idx * unroll_size + 5] = value;
-      data_[idx * unroll_size + 6] = value;
-      data_[idx * unroll_size + 7] = value;
-    }
-
-    for (size_type idx = num_rolls * unroll_size; idx < size_; ++idx) { data_[idx] = value; }
+    for (size_type idx = 0; idx < size(); ++idx) { data_[idx] = value; }
   }
 
   auto
