@@ -14,7 +14,7 @@ namespace pmr = boost::container::pmr;
 void
 test_default_allocator()
 {
-  auto       a = sleip::dynamic_array_noinit<int>(5);
+  auto       a = sleip::dynamic_array<int>(sleip::default_init, 5);
   auto const e = std::initializer_list<int>{1, 2, 3, 4, 5};
 
   // comment this out and test with valgrind to check effects of no default initialization
@@ -35,7 +35,9 @@ test_polymorphic_allocator()
   auto buff  = pmr::monotonic_buffer_resource(bytes.data(), bytes.size());
   auto alloc = pmr::polymorphic_allocator<int>(&buff);
 
-  auto       a = sleip::dynamic_array_noinit<int, pmr::polymorphic_allocator<int>>(5, alloc);
+  auto a =
+    sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(sleip::default_init, 5, alloc);
+
   auto const e = std::initializer_list<int>{1, 2, 3, 4, 5};
 
   // comment this out and test with valgrind to check effects of no default initialization

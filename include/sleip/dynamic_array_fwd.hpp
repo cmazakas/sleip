@@ -17,9 +17,6 @@ namespace sleip
 template <class T, class Allocator = std::allocator<T>>
 struct dynamic_array;
 
-template <class T, class Allocator = std::allocator<T>>
-using dynamic_array_noinit = dynamic_array<T, boost::noinit_adaptor<Allocator>>;
-
 #if SLEIP_HAS_PMR
 namespace pmr
 {

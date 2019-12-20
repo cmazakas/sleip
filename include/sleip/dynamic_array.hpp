@@ -54,6 +54,12 @@ using is_forward_iterator = is_category_convertible<It, std::forward_iterator_ta
 
 } // namespace detail
 
+struct default_init_t
+{
+};
+
+inline constexpr default_init_t default_init;
+
 template <class T, class Allocator>
 struct dynamic_array : boost::empty_value<Allocator>
 {
@@ -128,6 +134,22 @@ public:
     : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
     auto& alloc_ = boost::empty_value<Allocator>::get();
+
+    auto d = std::unique_ptr<T[], dealloc>(
+      std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
+
+    auto* const p = boost::to_address(d.get());
+
+    boost::alloc_construct_n(alloc_, p, count);
+
+    data_ = d.release();
+    size_ = count;
+  }
+
+  explicit dynamic_array(default_init_t, size_type count, Allocator const& alloc = Allocator())
+    : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
+  {
+    auto alloc_ = boost::noinit_adapt(boost::empty_value<Allocator>::get());
 
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
