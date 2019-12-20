@@ -7,6 +7,22 @@
 
 namespace ipc = boost::interprocess;
 
+#ifdef BOOST_NO_EXCEPTIONS
+
+#include <iostream>
+#include <exception>
+
+namespace boost
+{
+void
+throw_exception(std::exception const& e)
+{
+  std::cerr << "Exception generated in noexcept code\nError: " << e.what() << "\n\n";
+  std::terminate();
+}
+} // namespace boost
+#endif
+
 void
 test_shmem_allocator()
 {
