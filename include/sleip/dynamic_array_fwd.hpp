@@ -1,13 +1,10 @@
 #ifndef SLEIP_DYNAMIC_ARRAY_FWD_HPP_
 #define SLEIP_DYNAMIC_ARRAY_FWD_HPP_
 
-#include <boost/core/noinit_adaptor.hpp>
+#include <boost/config.hpp>
 
-#if __has_include(<memory_resource>)
-#include <memory_resource>
-#define SLEIP_HAS_PMR 1
-#else
-#define SLEIP_HAS_PMR 0
+#if !__has_include(<memory_resource>) || (__cplusplus < 201703L) || (BOOST_MSVC && !_HAS_CXX17)
+#define SLEIP_NO_CXX17_PMR
 #endif
 
 #include <memory>
@@ -17,7 +14,7 @@ namespace sleip
 template <class T, class Allocator = std::allocator<T>>
 struct dynamic_array;
 
-#if SLEIP_HAS_PMR
+#ifndef SLEIP_NO_CXX17_PMR
 namespace pmr
 {
 template <class T>
