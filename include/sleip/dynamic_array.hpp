@@ -487,8 +487,17 @@ public:
     return data_[pos];
   }
 
-  auto operator[](size_type pos) & -> reference { return data_[pos]; }
-  auto operator[](size_type pos) const& -> const_reference { return data_[pos]; }
+  auto operator[](size_type pos) & -> reference
+  {
+    BOOST_ASSERT(pos < size());
+    return data_[pos];
+  }
+
+  auto operator[](size_type pos) const& -> const_reference
+  {
+    BOOST_ASSERT(pos < size());
+    return data_[pos];
+  }
 
   auto
   front() & -> reference
