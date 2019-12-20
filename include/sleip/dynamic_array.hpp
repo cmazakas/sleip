@@ -12,6 +12,9 @@
 #include <boost/core/noinit_adaptor.hpp>
 #include <boost/core/pointer_traits.hpp>
 
+#include <boost/mp11/integral.hpp>
+#include <boost/mp11/utility.hpp>
+
 #include <boost/iterator/iterator_concepts.hpp>
 
 #include <algorithm>
@@ -38,53 +41,17 @@ alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
   hold.size() = 0;
 }
 
-// copy-paste-modify the iterator checking from libcxx's vector implementation
-// see:
-// https://github.com/llvm-mirror/libcxx/blob/8279a1399ec1db64f107b5f1d3966c3b8df28dd9/include/iterator
-//
-// for proper attribution to the authors and their work
-//
-template <class _Tp>
-struct has_iterator_category
-{
-private:
-  struct two
-  {
-    char lx;
-    char lxx;
-  };
+template <class It, class To>
+using is_category_convertible_ =
+  std::is_convertible<typename std::iterator_traits<It>::iterator_category, To>;
 
-  template <class _Up>
-  static two
-  test(...);
+template <class It, class To>
+using is_category_convertible =
+  boost::mp11::mp_eval_or<boost::mp11::mp_false, is_category_convertible_, It, To>;
 
-  template <class _Up>
-  static char
-  test(typename _Up::iterator_category* = 0);
+template <class It>
+using is_forward_iterator = is_category_convertible<It, std::forward_iterator_tag>;
 
-public:
-  static const bool value = sizeof(test<_Tp>(0)) == 1;
-};
-
-template <class _Tp, class _Up, bool = has_iterator_category<std::iterator_traits<_Tp>>::value>
-struct has_iterator_category_convertible_to
-  : public std::integral_constant<
-      bool,
-      std::is_convertible<typename std::iterator_traits<_Tp>::iterator_category, _Up>::value>
-
-{
-};
-
-template <class _Tp, class _Up>
-struct has_iterator_category_convertible_to<_Tp, _Up, false> : public std::false_type
-{
-};
-
-template <class _Tp>
-struct is_forward_iterator
-  : public has_iterator_category_convertible_to<_Tp, std::forward_iterator_tag>
-{
-};
 } // namespace detail
 
 template <class T, class Allocator>
