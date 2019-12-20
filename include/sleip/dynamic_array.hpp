@@ -558,6 +558,8 @@ public:
       auto& alloc_       = boost::empty_value<Allocator>::get();
       auto& other_alloc_ = static_cast<boost::empty_value<Allocator>&>(other).get();
       swap(alloc_, other_alloc_);
+    } else {
+      BOOST_ASSERT(get_allocator() == other.get_allocator());
     }
 
     auto tmp_data = data_;
