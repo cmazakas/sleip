@@ -598,7 +598,7 @@ template <class T, class Allocator>
 auto
 operator>(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
-  return !(lhs < rhs);
+  return rhs < lhs;
 }
 
 template <class T, class Allocator>

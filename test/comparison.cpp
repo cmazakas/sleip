@@ -29,6 +29,9 @@ test_greater_than_less_than()
   BOOST_ASSERT(!(c > a));
   BOOST_ASSERT((a > c));
 
+  BOOST_ASSERT(!(a > b));
+  BOOST_ASSERT(!(a < b));
+
   BOOST_ASSERT((a <= b));
   BOOST_ASSERT((a >= b));
 
