@@ -568,7 +568,7 @@ public:
   auto
   fill(T const& value) -> void
   {
-    for (size_type idx = 0; idx < size(); ++idx) { data_[idx] = value; }
+    std::fill(begin(), end(), value);
   }
 
   auto
