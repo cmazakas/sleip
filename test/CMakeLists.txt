@@ -15,6 +15,7 @@ function(sleip_add_test test_name)
 endfunction()
 
 sleip_add_test(container_traits)
+sleip_add_test(move_if_noexcept_adaptor)
 sleip_add_test(constructors)
 target_link_libraries(constructors PRIVATE Boost::container)
 
