@@ -146,7 +146,7 @@ public:
     size_ = count;
   }
 
-  explicit dynamic_array(default_init_t, size_type count, Allocator const& alloc = Allocator())
+  explicit dynamic_array(size_type count, default_init_t, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
     auto alloc_ = boost::noinit_adapt(boost::empty_value<Allocator>::get());
