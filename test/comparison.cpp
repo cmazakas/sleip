@@ -23,21 +23,33 @@ test_greater_than_less_than()
   auto const b = a;
   auto const c = sleip::dynamic_array<int>{0, 1, 2, 1, 0};
 
+  // test that c is less than a and that a is not less than c
+  //
   BOOST_ASSERT((c < a));
   BOOST_ASSERT(!(a < c));
 
+  // test that c is not greater than a and that a is greater than c
+  //
   BOOST_ASSERT(!(c > a));
   BOOST_ASSERT((a > c));
 
+  // test that a is not greater or less than b
+  //
   BOOST_ASSERT(!(a > b));
   BOOST_ASSERT(!(a < b));
 
+  // test that a is less than/greater than or equal to b
+  //
   BOOST_ASSERT((a <= b));
   BOOST_ASSERT((a >= b));
 
+  // test that c is less than or equal to a and that a is not less than or equal to c
+  //
   BOOST_ASSERT((c <= a));
   BOOST_ASSERT(!(a <= c));
 
+  // test that c is not greater than or equal t o a and that a is greater than or equal to c
+  //
   BOOST_ASSERT(!(c >= a));
   BOOST_ASSERT((a >= c));
 }
