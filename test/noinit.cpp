@@ -35,7 +35,7 @@ test_noinit()
     auto alloc       = pmr::polymorphic_allocator<int>(&mem_resouce);
 
     auto a =
-      sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(count, sleip::default_init, alloc);
+      sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(count, sleip::noinit, alloc);
 
     BOOST_TEST_EQ(a.size(), count);
     BOOST_TEST(buf == expected_bytes);
