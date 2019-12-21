@@ -599,7 +599,6 @@ template <class T, class Allocator>
 auto
 operator==(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
-  if (lhs.size() != rhs.size()) { return false; }
   return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
