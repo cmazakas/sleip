@@ -19,6 +19,13 @@ struct Y
   Y(Y&&) noexcept = delete;
 };
 
+struct Z
+{
+  Z()         = default;
+  Z(Z const&) = default;
+  Z(Z&&){};
+};
+
 static_assert(std::is_same_v<X&&,
                              decltype(*std::declval<sleip::detail::move_if_noexcept_adaptor<
                                         typename std::vector<X>::iterator>&>())>);
@@ -26,6 +33,10 @@ static_assert(std::is_same_v<X&&,
 static_assert(std::is_same_v<Y const&,
                              decltype(*std::declval<sleip::detail::move_if_noexcept_adaptor<
                                         typename std::vector<Y>::iterator>&>())>);
+
+static_assert(std::is_same_v<Z const&,
+                             decltype(*std::declval<sleip::detail::move_if_noexcept_adaptor<
+                                        typename std::vector<Z>::iterator>&>())>);
 
 int
 main()
