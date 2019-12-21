@@ -1,6 +1,8 @@
 #ifndef SLEIP_DYNAMIC_ARRAY_FWD_HPP_
 #define SLEIP_DYNAMIC_ARRAY_FWD_HPP_
 
+// so we can have _HAS_CXX17
+//
 #if __has_include(<vcruntime.h>)
 #include <vcruntime.h>
 #endif
