@@ -28,18 +28,20 @@ namespace sleip
 {
 namespace detail
 {
-// copy-paste-modify the great glenfe's .Core code
-//
-template <class A, class T, class I>
-inline void
-alloc_move_construct_n(A& a, T* p, std::size_t n, I b)
+template <class Iterator>
+struct move_if_noexcept_adaptor
 {
-  ::boost::detail::alloc_destroyer<A, T> hold(a, p);
-  for (std::size_t& i = hold.size(); i < n; void(++i), void(++b)) {
-    std::allocator_traits<A>::construct(a, p + i, std::move_if_noexcept(*b));
+  Iterator it;
+
+  auto operator*() & -> decltype(auto) { return std::move_if_noexcept(*it); }
+
+  auto
+  operator++() & -> move_if_noexcept_adaptor&
+  {
+    ++it;
+    return *this;
   }
-  hold.size() = 0;
-}
+};
 
 template <class It, class To>
 using is_category_convertible_ =
@@ -253,7 +255,8 @@ public:
 
     auto* const p = boost::to_address(d.get());
 
-    detail::alloc_move_construct_n(alloc_, p, other.size(), other.begin());
+    boost::alloc_construct_n(alloc_, p, other.size(),
+                             detail::move_if_noexcept_adaptor<iterator>{other.begin()});
 
     data_ = d.release();
     size_ = count;
@@ -359,7 +362,8 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(std::allocator_traits<Allocator>::allocate(a, count),
                                            dealloc(a, count));
 
-    detail::alloc_move_construct_n(a, boost::to_address(d.get()), other.size(), other.begin());
+    boost::alloc_construct_n(a, boost::to_address(d.get()), other.size(),
+                             detail::move_if_noexcept_adaptor<iterator>{other.begin()});
 
     boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
