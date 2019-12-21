@@ -9,7 +9,7 @@
 
 #include <boost/config.hpp>
 
-#if !__has_include(<memory_resource>) || (!BOOST_MSVC &&__cplusplus < 201703L) || (BOOST_MSVC && !_HAS_CXX17)
+#if !__has_include(<memory_resource>) || (!BOOST_MSVC && __cplusplus < 201703L) || (BOOST_MSVC && !_HAS_CXX17)
 #define SLEIP_NO_CXX17_PMR
 #endif
 
