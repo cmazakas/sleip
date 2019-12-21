@@ -8,51 +8,61 @@
 #include <array>
 #include <cstddef>
 #include <numeric>
+#include <cstring>
+#include <algorithm>
 
 namespace pmr = boost::container::pmr;
 
+// write a sentinel byte value to a memory region that we use for storage for our dynamic array
+// to goal is to prove that our noinit construction of the `dynamic_array` does not alter its
+// underlying memory region
+//
 void
-test_default_allocator()
+test_noinit()
 {
-  auto       a = sleip::dynamic_array<int>(5, sleip::default_init);
-  auto const e = std::initializer_list<int>{1, 2, 3, 4, 5};
+  auto const count    = 1024;
+  auto const sentinel = std::byte{123};
 
-  // comment this out and test with valgrind to check effects of no default initialization
-  // valgrind should have a hard error when `std::iota` is commented out
+  // prove the noinit case before proving the init case
   //
-  std::iota(a.begin(), a.end(), 1);
+  {
+    auto buf = std::array<std::byte, count * sizeof(int)>{};
+    buf.fill(sentinel);
 
-  BOOST_TEST_ALL_EQ(a.begin(), a.end(), e.begin(), e.end());
-}
+    auto const expected_bytes = buf;
 
-void
-test_polymorphic_allocator()
-{
-  // `bytes` _must_ be unitialized for valgrind to catch this
+    auto mem_resouce = pmr::monotonic_buffer_resource(buf.data(), buf.size());
+    auto alloc       = pmr::polymorphic_allocator<int>(&mem_resouce);
+
+    auto a =
+      sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(count, sleip::default_init, alloc);
+
+    BOOST_TEST_EQ(a.size(), count);
+    BOOST_TEST(buf == expected_bytes);
+  }
+
+  // prove that initialization _does_ alter the underlying byte sequence
   //
-  std::array<std::byte, 4096> bytes;
+  {
+    auto buf = std::array<std::byte, count * sizeof(int)>{};
+    buf.fill(sentinel);
 
-  auto buff  = pmr::monotonic_buffer_resource(bytes.data(), bytes.size());
-  auto alloc = pmr::polymorphic_allocator<int>(&buff);
+    auto const expected_bytes = buf;
 
-  auto a =
-    sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(5, sleip::default_init, alloc);
+    auto mem_resouce = pmr::monotonic_buffer_resource(buf.data(), buf.size());
+    auto alloc       = pmr::polymorphic_allocator<int>(&mem_resouce);
 
-  auto const e = std::initializer_list<int>{1, 2, 3, 4, 5};
+    auto a = sleip::dynamic_array<int, pmr::polymorphic_allocator<int>>(count, -1, alloc);
 
-  // comment this out and test with valgrind to check effects of no default initialization
-  // valgrind should have a hard error when `std::iota` is commented out
-  //
-  std::iota(a.begin(), a.end(), 1);
-
-  BOOST_TEST_ALL_EQ(a.begin(), a.end(), e.begin(), e.end());
+    BOOST_TEST_EQ(a.size(), count);
+    BOOST_TEST(buf != expected_bytes);
+  }
 }
 
 int
 main()
 {
-  test_default_allocator();
-  test_polymorphic_allocator();
+  test_noinit();
 
   return boost::report_errors();
 }
