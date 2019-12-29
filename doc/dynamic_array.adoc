@@ -1,0 +1,554 @@
+
+[#dynamic_array]
+# dynamic_array : Fixed-size dynamic array
+:toc:
+:toc-title:
+:idprefix: dynamic_array_
+
+## Description
+
+The `dynamic_array` is an https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer[AllocatorAwareContainer]
+that represents a fixed-size array.
+
+## Rationale
+
+The {cpp}11 standard introduced `std::array` and while it is a useful class, it is not permitted to
+perform many useful operations.
+
+By default it encourages automatic storage duration and if one does create an `std::array` with
+dynamic storage duration, it still lacks many of the niceties brought to use by `std::vector`. But
+its API can be larger than what is required and can offer many unneeded functions (which gives a
+larger surface area for misuse).
+
+`dynamic_array` is a hybrid of the two classes. The dynamic nature of `std::vector` with the core
+API for `std::array`.
+
+## Synopsis
+
+`dynamic_array` is defined in `<sleip/dynamic_array.hpp>`.
+
+A forwarding header is also provided in the form of: `<sleip/dynamic_array_fwd.hpp>`.
+
+[subs=+quotes]
+```
+namespace sleip
+{
+template <class T, class Allocator>
+struct dynamic_array
+{
+public:
+  using value_type             = T;
+  using allocator_type         = Allocator;
+  using size_type              = typename std::allocator_traits<Allocator>::size_type;
+  using difference_type        = typename std::allocator_traits<Allocator>::difference_type;
+  using reference              = value_type&;
+  using const_reference        = value_type const&;
+  using pointer                = typename std::allocator_traits<Allocator>::pointer;
+  using const_pointer          = typename std::allocator_traits<Allocator>::const_pointer;
+  using iterator               = value_type*;
+  using const_iterator         = value_type const*;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+  dynamic_array() noexcept(noexcept(Allocator())){};
+
+  explicit dynamic_array(const Allocator& alloc) noexcept;
+
+  dynamic_array(size_type count, T const& value, Allocator const& alloc = Allocator());
+
+  explicit dynamic_array(size_type count, Allocator const& alloc = Allocator());
+
+  template <class ForwardIterator>
+  dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator());
+
+  dynamic_array(dynamic_array const& other);
+
+  dynamic_array(dynamic_array const& other, Allocator const& alloc);
+
+  dynamic_array(dynamic_array&& other) noexcept;
+
+  dynamic_array(dynamic_array&& other, Allocator const& alloc);
+
+  dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator());
+
+  ~dynamic_array();
+
+  auto
+  operator=(dynamic_array const& other) & -> dynamic_array&;
+
+  auto
+    operator=(dynamic_array&& other) &
+    noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
+             std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&;
+
+  auto
+  operator=(std::initializer_list<T> ilist) & -> dynamic_array&;
+
+  auto
+  get_allocator() const -> allocator_type;
+
+  auto
+  size() const noexcept -> size_type;
+
+  auto
+  data() noexcept -> T*;
+
+  auto
+  data() const noexcept -> T const*;
+
+  auto
+  begin() noexcept -> iterator;
+
+  auto
+  begin() const noexcept -> const_iterator;
+
+  auto
+  cbegin() const noexcept -> const_iterator;
+
+  auto
+  end() noexcept -> iterator;
+
+  auto
+  end() const noexcept -> const_iterator;
+
+  auto
+  cend() const noexcept -> const_iterator;
+
+  auto
+  rbegin() noexcept -> reverse_iterator;
+
+  auto
+  rbegin() const noexcept -> const_reverse_iterator;
+
+  auto
+  crbegin() const noexcept -> const_reverse_iterator;
+
+  auto
+  rend() noexcept -> reverse_iterator;
+
+  auto
+  rend() const noexcept -> const_reverse_iterator;
+
+  auto
+  crend() const noexcept -> const_reverse_iterator;
+
+  auto
+  at(size_type pos) & -> reference;
+
+  auto
+  at(size_type pos) const& -> const_reference;
+
+  auto operator[](size_type pos) & -> reference;
+  auto operator[](size_type pos) const& -> const_reference;
+
+  auto
+  front() & -> reference;
+
+  auto
+  front() const& -> const_reference;
+
+  auto
+  back() & -> reference;
+
+  auto
+  back() const& -> const_reference;
+
+  auto
+  empty() const noexcept -> bool;
+
+  auto
+  max_size() const noexcept -> size_type;
+
+  auto
+  fill(T const& value) -> void;
+
+  auto
+    swap(dynamic_array& other) &
+    noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value ||
+             std::allocator_traits<Allocator>::is_always_equal::value) -> void;
+};
+
+template <class T, class Allocator>
+auto
+operator==(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator!=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator<(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator>(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator<=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator>=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+} // namespace sleip
+```
+
+## Common Requirements
+
+Requires:: `Allocator` shall be an _allocator_. The copy constructor and destructor of `Allocator`
+shall not throw exceptions.
+
+## Members
+
+### default constructor
+```
+dynamic_array() noexcept(noexcept(Allocator()));
+```
+[none]
+* {blank}
++
+Effects:: Constructs an empty `dynamic_array`.
+Postconditions:: `size() == 0 && data() == nullptr && empty()`.
+
+#### allocator constructor
+```
+explicit dynamic_array(const Allocator& alloc) noexcept;
+```
+[none]
+* {blank}
++
+Effects:: Constructs an empty `dynamic_array` using the supplied `alloc`.
+Postconditions:: `size() == 0 && data() == nullptr && empty() && get_allocator() == alloc`.
+
+### count + value constructor
+```
+dynamic_array(size_type count, T const& value, Allocator const& alloc = Allocator());
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` of length `count` with each element being constructed with
+`value`, using the supplied `alloc`.
+Postconditions:: `size() == count && data() != nullptr && !empty() && get_allocator() == alloc`.
+
+### count constructor
+```
+explicit dynamic_array(size_type count, Allocator const& alloc = Allocator());
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` of length `count` with each element being
+default-constructed, using the supplied `alloc`.
+Postconditions:: `size() == count && data() != nullptr && !empty() && get_allocator() == alloc`.
+
+### noinit constructor
+```
+explicit dynamic_array(size_type count, noinit_t, Allocator const& alloc = Allocator());
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` of length `count` with each element being
+default-initialized, using the supplied `alloc`.
+Postconditions:: `size() == count && data() != nullptr && !empty() && get_allocator() == alloc`.
+
+### range constructor
+```
+template <class ForwardIterator>
+dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator());
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` representing the range given by `[first, last)`, using the
+supplied `alloc`.
+Postconditions:: `size() == count && data() != nullptr && !empty() && get_allocator() == alloc`.
+
+### copy constructor
+```
+dynamic_array(dynamic_array const& other);
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` by performing a deep copy of `other`.
+Postconditions:: `size() == other.size() && data() != other.data() && get_allocator() == other.get_allocator()`.
+
+### copy + allocator constructor
+```
+dynamic_array(dynamic_array const& other, Allocator const& alloc);
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` by performing a deep copy of `other`, using the supplied
+`alloc`.
+Postconditions:: `size() == other.size() && data() != other.data() && get_allocator() == alloc`.
+
+### move constructor
+```
+dynamic_array(dynamic_array&& other) noexcept;
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` by taking ownership of the supplied `other`.
+Postconditions:: `size() == other.size() && data() == other.data() && get_allocator() == other.get_allocator()`.
+
+NOTE: `other` will have the following postcondition: `empty() && size() == 0 && data() == nullptr`
+
+### move + allocator constructor
+```
+dynamic_array(dynamic_array&& other, Allocator const& alloc);
+```
+[none]
+* {blank}
++
+Effects:: If `alloc == other.get_allocator()`, constructs a `dynamic_array` by taking ownership of
+`other`. If `alloc != other.get_allocator()`, constructs a `dynamic_array` by performing a piecewise
+move of every element in `other`.
+Postconditions:: `size() == other.size() && get_allocator() == other.get_allocator()`.
+
+NOTE: will only perform the move if the `value_type` has a move constructor marked `noexcept`
+otherwise this operation will perform a copy of the elements.
+
+### initializer list constructor
+```
+dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator());
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` by copying `init`.
+Postconditions:: `size() == init.size() && get_allocator() == alloc`.
+
+### copy assignment
+```
+auto
+operator=(dynamic_array const& other) & -> dynamic_array&;
+```
+[none]
+* {blank}
++
+Effects:: Deallocates the current internal buffer and replaces it with a copy of `other`. Note, this
+function has the strong exception guarantee. If the Allocator specifies
+`propagate_on_container_copy_assignment`, `other.get_allocator()` will be used to allocate the new
+copy and `get_allocator() == other.get_allocator()` will return `true`.
+Postconditions:: `size() == other.size()`.
+
+### move assignment
+```
+auto
+operator=(dynamic_array&& other) &
+noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
+         std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&;
+```
+[none]
+* {blank}
++
+Effects:: If `get_allocator() == other.get_allocator()`, moves `other` into the current
+`dynamic_array` which will leave `other` in a moved-from state. Otherwise, performs a piecewise move
+of `other`, adhering to the semantics of `propagate_on_container_move_assignment`. This function has
+strong exception guarantee and as such will only perform a move if the move constructor of
+`value_type` is marked `noexcept`.
+Postconditions:: `size() == other.size()`.
+
+### initializer list assignment
+```
+auto
+operator=(std::initializer_list<T> ilist) & -> dynamic_array&;
+```
+[none]
+* {blank}
++
+Effects:: Deallocates the current internal buffer and makes a copy of the elements denoted by
+`ilist`.
+Postconditions:: `size() == ilist.size()`.
+
+### get_allocator
+```
+auto
+get_allocator() const -> allocator_type;
+```
+
+Effects:: Returns a copy of the internal allocator.
+
+### size
+```
+auto
+size() const noexcept -> size_type;
+```
+
+Effects:: Returns the current size of the internal dynamic array.
+
+### data
+```
+auto
+data() noexcept -> T*;
+
+auto
+data() const noexcept -> T const*;
+```
+
+Effects:: Returns a pointer to the elements of the buffer.
+
+### begin + cbegin
+```
+auto
+begin() noexcept -> iterator;
+
+auto
+begin() const noexcept -> const_iterator;
+
+auto
+cbegin() const noexcept -> const_iterator;
+```
+
+Effects:: Returns an iterator the beginning of the fixed-sized array.
+
+### end + cend
+```
+auto
+end() noexcept -> iterator;
+
+auto
+end() const noexcept -> const_iterator;
+
+auto
+cend() const noexcept -> const_iterator;
+```
+
+Effects:: Returns an iterator representing the end of the fixed-size array.
+
+### rbegin + crbegin
+```
+auto
+rbegin() noexcept -> reverse_iterator;
+
+auto
+rbegin() const noexcept -> const_reverse_iterator;
+
+auto
+crbegin() const noexcept -> const_reverse_iterator;
+```
+
+Effects:: Returns a reverse iterator pointing to the last element in the fixed-size array.
+
+### rend + crend
+```
+auto
+rend() noexcept -> reverse_iterator;
+
+auto
+rend() const noexcept -> const_reverse_iterator;
+
+auto
+crend() const noexcept -> const_reverse_iterator;
+```
+
+Effects:: Returns a reverse iterator representing the end of the reversed range.
+
+### at
+```
+auto
+at(size_type pos) & -> reference;
+
+auto
+at(size_type pos) const& -> const_reference;
+```
+
+Effects:: Returns a reference to the array element at `pos` or throws an exception if out-of-range.
+
+### subscript
+```
+auto operator[](size_type pos) & -> reference;
+
+auto operator[](size_type pos) const& -> const_reference;
+```
+
+Effects:: Returns a reference to the array element at `pos`.
+
+### front
+```
+auto
+front() & -> reference;
+
+auto
+front() const& -> const_reference;
+```
+
+Effects::  Returns a reference to the first element in the fixed-size array.
+
+### back
+```
+auto
+back() & -> reference;
+
+auto
+back() const& -> const_reference;
+```
+
+Effects:: Returns a reference to the last element in the fixed-size array.
+
+### empty
+```
+auto
+empty() const noexcept -> bool;
+```
+
+Effects:: Returns whether or not the container is currently empty, i.e. has zero size.
+
+### max_size
+```
+auto
+max_size() const noexcept -> size_type;
+```
+
+Returns:: Max possible size of the dynamic array for the given platform.
+
+### swap
+```
+auto
+swap(dynamic_array& other) &
+noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value ||
+         std::allocator_traits<Allocator>::is_always_equal::value) -> void;
+```
+
+Effects:: Swaps the managed dynamic buffers of `*this` and `other`. If `propagate_on_container_swap`
+is true for `Allocator`, the allocators will be swapped before the buffers are. Otherwise,
+`get_allocator()` _must_ be equal to `other.get_allocator()`.
+
+## Free Functions
+
+### comparison
+```
+template <class T, class Allocator>
+auto
+operator==(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator!=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator<(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator>(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator<=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+
+template <class T, class Allocator>
+auto
+operator>=(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool;
+```
+
+Effects:: Does a lexicographical comparison of the underlying elements in both `lhs` and `rhs.`
+
+Returns:: Boolean indicating whether `lhs` is equal to or less than or greater than `rhs`.
