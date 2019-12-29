@@ -11,6 +11,7 @@
 #include <boost/core/empty_value.hpp>
 #include <boost/core/noinit_adaptor.hpp>
 #include <boost/core/pointer_traits.hpp>
+#include <boost/core/first_scalar.hpp>
 
 #include <boost/mp11/integral.hpp>
 #include <boost/mp11/utility.hpp>
@@ -28,6 +29,27 @@ namespace sleip
 {
 namespace detail
 {
+template <class T>
+struct array_size : std::integral_constant<std::size_t, 1>
+{
+};
+
+template <class T, std::size_t N>
+struct array_size<T[N]>
+  : std::integral_constant<std::size_t, N * sizeof(T) / sizeof(std::remove_all_extents_t<T[N]>)>
+{
+};
+
+template <class T>
+inline constexpr std::size_t array_size_v = array_size<T>::value;
+
+template <class T>
+auto
+num_elems(std::size_t const count) -> std::size_t
+{
+  return count * array_size_v<T>;
+}
+
 template <class Iterator>
 struct move_if_noexcept_adaptor
 {
@@ -39,6 +61,33 @@ struct move_if_noexcept_adaptor
   operator++() & -> move_if_noexcept_adaptor&
   {
     ++it;
+    return *this;
+  }
+};
+
+template <class Iterator>
+struct array_walker
+{
+  Iterator it;
+
+  std::size_t step = 0;
+
+  auto operator*() & -> decltype(auto)
+  {
+    auto* const arr = boost::first_scalar(std::addressof(*it));
+    return arr[step];
+  }
+
+  auto
+  operator++() & -> array_walker&
+  {
+    if ((step + 1) == array_size_v<typename std::iterator_traits<Iterator>::value_type>) {
+      ++it;
+      step = 0;
+    } else {
+      ++step;
+    }
+
     return *this;
   }
 };
@@ -124,9 +173,10 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, count, std::addressof(value), 1);
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(count),
+                             boost::first_scalar(std::addressof(value)), detail::num_elems<T>(1));
 
     data_ = d.release();
     size_ = count;
@@ -140,9 +190,9 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, count);
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(count));
 
     data_ = d.release();
     size_ = count;
@@ -156,24 +206,22 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, count);
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(count));
 
     data_ = d.release();
     size_ = count;
   }
 
-  // impose Forward over Input because we can't resize the allocation so we need to know the
-  // range's size up-front
+  // impose Forward over Input because we can't resize the allocation so we need to know the range's
+  // size up-front
+  //
   template <class ForwardIterator,
             std::enable_if_t<detail::is_forward_iterator<ForwardIterator>::value, int> = 0>
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
-    BOOST_CONCEPT_ASSERT((boost_concepts::ReadableIteratorConcept<ForwardIterator>) );
-    BOOST_CONCEPT_ASSERT((boost_concepts::ForwardTraversalConcept<ForwardIterator>) );
-
     auto const count = static_cast<size_type>(std::distance(first, last));
 
     auto& alloc_ = boost::empty_value<Allocator>::get();
@@ -181,9 +229,10 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, count, first);
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(count),
+                             detail::array_walker<ForwardIterator>{first});
 
     data_ = d.release();
     size_ = count;
@@ -201,9 +250,10 @@ public:
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
       dealloc(alloc_, other.size()));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, other.size(), other.begin());
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(other.size()),
+                             boost::first_scalar(other.data()));
 
     data_ = d.release();
     size_ = other.size();
@@ -218,9 +268,10 @@ public:
       std::allocator_traits<Allocator>::allocate(alloc_, other.size()),
       dealloc(alloc_, other.size()));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, other.size(), other.begin());
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(other.size()),
+                             boost::first_scalar(other.data()));
 
     data_ = d.release();
     size_ = other.size();
@@ -253,10 +304,11 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(
       std::allocator_traits<Allocator>::allocate(alloc_, count), dealloc(alloc_, count));
 
-    auto* const p = boost::to_address(d.get());
+    auto* const p = boost::first_scalar(boost::to_address(d.get()));
 
-    boost::alloc_construct_n(alloc_, p, other.size(),
-                             detail::move_if_noexcept_adaptor<iterator>{other.begin()});
+    boost::alloc_construct_n(alloc_, p, detail::num_elems<T>(other.size()),
+                             detail::move_if_noexcept_adaptor<detail::array_walker<iterator>>{
+                               detail::array_walker<iterator>{other.begin()}});
 
     data_ = d.release();
     size_ = count;
@@ -271,11 +323,10 @@ public:
   {
     if (data_ == nullptr && size_ == 0) { return; }
 
-    auto& alloc = boost::empty_value<Allocator>::get();
+    auto        alloc = boost::empty_value<Allocator>::get();
+    auto* const p     = boost::first_scalar(data());
 
-    auto* const p = boost::to_address(data_);
-
-    boost::alloc_destroy_n(alloc, p, size_);
+    boost::alloc_destroy_n(alloc, p, detail::num_elems<T>(size_));
     std::allocator_traits<Allocator>::deallocate(alloc, data_, size_);
   }
 

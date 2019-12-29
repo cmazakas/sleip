@@ -42,3 +42,5 @@ sleip_add_test(noinit)
 target_link_libraries(noinit PRIVATE Boost::container)
 
 sleip_add_test(comparison)
+
+add_subdirectory(array)
