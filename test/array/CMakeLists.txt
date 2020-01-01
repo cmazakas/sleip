@@ -1,2 +1,2 @@
 sleip_add_test(array_constructors)
-target_link_libraries(array_constructors PRIVATE Boost::container)
+sleip_add_test(array_element_access)

@@ -29,6 +29,7 @@ target_compile_features(dynamic_array INTERFACE cxx_std_17)
 
 include(CTest)
 if (BUILD_TESTING)
+  include("cmake/SleipAddTest.cmake")
   add_subdirectory(test)
 endif()
 
