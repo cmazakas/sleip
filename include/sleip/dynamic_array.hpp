@@ -44,8 +44,8 @@ template <class T>
 inline constexpr std::size_t array_size_v = array_size<T>::value;
 
 template <class T>
-auto
-num_elems(std::size_t const count) -> std::size_t
+constexpr auto
+num_elems(std::size_t const count) noexcept -> std::size_t
 {
   return count * array_size_v<T>;
 }
