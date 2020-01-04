@@ -334,7 +334,7 @@ public:
   operator=(dynamic_array const& other) & -> dynamic_array&
   {
     auto&       alloc_ = boost::empty_value<Allocator>::get();
-    auto* const p      = boost::to_address(data_);
+    auto* const p      = boost::first_scalar(boost::to_address(data_));
 
     if (alloc_ == other.get_allocator()) {
       auto tmp = dynamic_array(other, alloc_);
@@ -344,7 +344,7 @@ public:
         alloc_ = other.get_allocator();
       }
 
-      boost::alloc_destroy_n(alloc_, p, size_);
+      boost::alloc_destroy_n(alloc_, p, detail::num_elems<T>(size_));
       std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
       data_ = tmp.data_;
@@ -361,7 +361,7 @@ public:
 
     auto tmp = dynamic_array(other.begin(), other.end(), a);
 
-    boost::alloc_destroy_n(alloc_, p, size_);
+    boost::alloc_destroy_n(alloc_, p, detail::num_elems<T>(size_));
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
     data_ = tmp.data_;
