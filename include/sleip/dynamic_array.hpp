@@ -30,18 +30,11 @@ namespace sleip
 namespace detail
 {
 template <class T>
-struct array_size : std::integral_constant<std::size_t, 1>
-{
-};
+inline constexpr std::size_t array_size_v = 1;
 
 template <class T, std::size_t N>
-struct array_size<T[N]>
-  : std::integral_constant<std::size_t, N * sizeof(T) / sizeof(std::remove_all_extents_t<T[N]>)>
-{
-};
-
-template <class T>
-inline constexpr std::size_t array_size_v = array_size<T>::value;
+inline constexpr std::size_t array_size_v<T[N]> = N * sizeof(T) /
+                                                  sizeof(std::remove_all_extents_t<T[N]>);
 
 template <class T>
 constexpr auto
