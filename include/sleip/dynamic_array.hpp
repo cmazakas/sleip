@@ -18,8 +18,6 @@
 #include <boost/mp11/integral.hpp>
 #include <boost/mp11/utility.hpp>
 
-#include <boost/iterator/iterator_concepts.hpp>
-
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
