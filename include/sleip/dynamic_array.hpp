@@ -384,7 +384,7 @@ public:
              std::allocator_traits<Allocator>::is_always_equal::value) -> dynamic_array&
   {
     auto&       alloc_ = boost::empty_value<Allocator>::get();
-    auto* const p      = boost::to_address(data_);
+    auto* const p      = boost::first_scalar(boost::to_address(data_));
 
     if (alloc_ == other.get_allocator()) {
       if constexpr (std::allocator_traits<
@@ -392,7 +392,7 @@ public:
         alloc_ = std::move(static_cast<boost::empty_value<Allocator>&>(other).get());
       }
 
-      boost::alloc_destroy_n(alloc_, p, size_);
+      boost::alloc_destroy_n(alloc_, p, detail::num_elems<T>(size_));
       std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
       data_ = other.data_;
@@ -413,8 +413,10 @@ public:
     auto d = std::unique_ptr<T[], dealloc>(std::allocator_traits<Allocator>::allocate(a, count),
                                            dealloc(a, count));
 
-    boost::alloc_construct_n(a, boost::to_address(d.get()), other.size(),
-                             detail::move_if_noexcept_adaptor<iterator>{other.begin()});
+    boost::alloc_construct_n(a, boost::first_scalar(boost::to_address(d.get())),
+                             detail::num_elems<T>(other.size()),
+                             detail::move_if_noexcept_adaptor<std::remove_all_extents_t<T>*>{
+                               boost::first_scalar(other.data())});
 
     boost::alloc_destroy_n(alloc_, p, size_);
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);

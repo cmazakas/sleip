@@ -1,3 +1,4 @@
 sleip_add_test(array_constructors)
 sleip_add_test(array_element_access)
 sleip_add_test(array_copy_assignment)
+sleip_add_test(array_move_assignment)
