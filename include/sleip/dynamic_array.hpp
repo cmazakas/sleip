@@ -434,9 +434,9 @@ public:
     auto& alloc_ = boost::empty_value<Allocator>::get();
     auto  tmp    = dynamic_array(ilist, alloc_);
 
-    auto* const p = boost::to_address(data_);
+    auto* const p = boost::first_scalar(boost::to_address(data_));
 
-    boost::alloc_destroy_n(alloc_, p, size_);
+    boost::alloc_destroy_n(alloc_, p, detail::num_elems<T>(size_));
     std::allocator_traits<Allocator>::deallocate(alloc_, data_, size_);
 
     data_ = tmp.data_;
