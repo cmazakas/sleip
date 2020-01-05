@@ -11,6 +11,7 @@ using std::end;
 void
 test_initializer_list_assignment()
 {
+#ifndef BOOST_GCC
   // empty
   //
   {
@@ -37,6 +38,7 @@ test_initializer_list_assignment()
 
     BOOST_TEST_EQ(a.size(), 1);
   }
+#endif
 }
 
 int

@@ -131,13 +131,16 @@ test_value_constructible_throwing()
   auto destructor_out  = std::array<char, 6>{};
   auto idx             = std::size_t{0};
 
-  auto const value = throwing(idx, constructor_out, destructor_out);
-
   auto const expected_c_out = std::string_view("abcde");
   auto const expected_d_out = std::string_view("edcba");
 
   BOOST_TEST_THROWS(
-    (sleip::dynamic_array<throwing[3][2]>(1, {{value, value}, {value, value}, {value, value}})),
+    (sleip::dynamic_array<throwing[3][2]>(1, {{throwing(idx, constructor_out, destructor_out),
+                                               throwing(idx, constructor_out, destructor_out)},
+                                              {throwing(idx, constructor_out, destructor_out),
+                                               throwing(idx, constructor_out, destructor_out)},
+                                              {throwing(idx, constructor_out, destructor_out),
+                                               throwing(idx, constructor_out, destructor_out)}})),
     int);
 
   BOOST_TEST_ALL_EQ(constructor_out.begin(), constructor_out.end() - 1, expected_c_out.begin(),
@@ -300,6 +303,7 @@ test_move_constructible_allocator()
 void
 test_initializer_list_constructible()
 {
+#ifndef BOOST_GCC
   auto buf = sleip::dynamic_array<int[3]>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
   int const expected[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
@@ -310,6 +314,7 @@ test_initializer_list_constructible()
                         [](auto const& a, auto const& b) {
                           return std::equal(std::begin(a), std::end(a), std::begin(b));
                         }));
+#endif
 }
 
 int
