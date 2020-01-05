@@ -662,7 +662,11 @@ template <class T, class Allocator>
 auto
 operator==(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
-  return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  auto a = boost::first_scalar(lhs.data());
+  auto b = boost::first_scalar(rhs.data());
+
+  return std::equal(a, a + detail::num_elems<T>(lhs.size()), b,
+                    b + detail::num_elems<T>(rhs.size()));
 }
 
 template <class T, class Allocator>
@@ -677,7 +681,11 @@ auto
 operator<(dynamic_array<T, Allocator> const& lhs, dynamic_array<T, Allocator> const& rhs) -> bool
 {
   if (lhs.size() != rhs.size()) { return false; }
-  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  auto a = boost::first_scalar(lhs.data());
+  auto b = boost::first_scalar(rhs.data());
+
+  return std::lexicographical_compare(a, a + detail::num_elems<T>(lhs.size()), b,
+                                      b + detail::num_elems<T>(rhs.size()));
 }
 
 template <class T, class Allocator>
