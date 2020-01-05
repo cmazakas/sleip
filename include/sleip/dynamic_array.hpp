@@ -122,7 +122,7 @@ public:
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   static_assert(
-    std::is_object_v<T> && (!std::is_array_v<T>) || (boost::is_bounded_array<T>::value),
+    std::is_object_v<T> && (!std::is_array_v<T> || boost::is_bounded_array<T>::value),
     "Only support object types, including bound array types. Unbound arrays are not supported");
 
   static_assert(std::is_same_v<typename allocator_type::value_type, value_type>,
