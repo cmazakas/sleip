@@ -625,7 +625,13 @@ public:
   auto
   fill(T const& value) -> void
   {
-    std::fill(begin(), end(), value);
+    if constexpr (std::is_array_v<T>) {
+      std::for_each(begin(), end(), [&](auto& arr) {
+        std::copy(std::begin(value), std::end(value), std::begin(arr));
+      });
+    } else {
+      std::fill(begin(), end(), value);
+    }
   }
 
   auto
