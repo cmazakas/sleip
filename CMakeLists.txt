@@ -10,6 +10,8 @@ project(
     1.0.0
 )
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 find_package(Boost 1.71 REQUIRED)
 
 include(GNUInstallDirs)
