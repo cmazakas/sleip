@@ -13,6 +13,8 @@
 #include <boost/core/pointer_traits.hpp>
 #include <boost/core/first_scalar.hpp>
 
+#include <boost/type_traits/is_bounded_array.hpp>
+
 #include <boost/mp11/integral.hpp>
 #include <boost/mp11/utility.hpp>
 
@@ -128,7 +130,10 @@ public:
   using reverse_iterator       = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-  static_assert(std::is_object_v<value_type>, "Only support object types");
+  static_assert(
+    std::is_object_v<T> && (!std::is_array_v<T>) || (boost::is_bounded_array<T>::value),
+    "Only support object types, including bound array types. Unbound arrays are not supported");
+
   static_assert(std::is_same_v<typename allocator_type::value_type, value_type>,
                 "Allocator's value type must match container's");
 
