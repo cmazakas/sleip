@@ -10,6 +10,7 @@ function(sleip_add_test test_name)
   if (MSVC)
     target_link_libraries(${test_name} PUBLIC Boost::disable_autolinking)
   endif()
+  set_target_properties(${test_name} PROPERTIES FOLDER "Test")
 
   add_test(${test_name} ${test_name})
 endfunction()
