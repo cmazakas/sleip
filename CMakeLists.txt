@@ -15,11 +15,10 @@ if(CMAKE_CXX_STANDARD LESS 17)
   message(FATAL_ERROR "Minimum C++17 version not met!")
 endif()
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 find_package(Boost 1.71 REQUIRED)
 
 include(GNUInstallDirs)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_library(dynamic_array INTERFACE)
 target_include_directories(
