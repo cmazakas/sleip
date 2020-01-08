@@ -10,6 +10,11 @@ project(
     1.0.0
 )
 
+set(CMAKE_CXX_STANDARD "17" CACHE STRING "Required C++ standard")
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "Minimum C++17 version not met!")
+endif()
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(Boost 1.71 REQUIRED)
@@ -25,7 +30,6 @@ target_include_directories(
 )
 
 target_link_libraries(dynamic_array INTERFACE Boost::headers)
-target_compile_features(dynamic_array INTERFACE cxx_std_17)
 
 include(CTest)
 if (BUILD_TESTING)
