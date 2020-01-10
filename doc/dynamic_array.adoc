@@ -12,16 +12,37 @@ that represents a fixed-size array.
 
 ## Rationale
 
-The {cpp}11 standard introduced `std::array` and while it is a useful class, it is not permitted to
-perform many useful operations.
+C++ has no shortage of ways to create arrays.
 
-By default it encourages automatic storage duration and if one does create an `std::array` with
-dynamic storage duration, it still lacks many of the niceties brought to use by `std::vector`. But
-its API can be larger than what is required and can offer many unneeded functions (which gives a
-larger surface area for misuse).
+A simple few are: `T[N]`, `std::array<T, N>`, `std::unique_ptr<T[]>`, `std::vector<T>`.
 
-`dynamic_array` is a hybrid of the two classes. The dynamic nature of `std::vector` with the core
-API for `std::array`.
+While each may differ in regards to things like their lifetime and API, they all fundamentally
+accomplish the same goal which is represent a contigous sequence of some type `T`.
+
+`T[N]` is a classic choice but has the caveat that to fit into the rest of the C++ ecosystem, it
+requires the usage of `std::data`, `std::begin`, `std::end`. There's also the issue that array
+objects themselves aren't copyable with `=` which can be cumbersome to work around.
+
+`std::array<T, N>` is sufficient but is an aggregate type so it can be tricky to
+https://stackoverflow.com/questions/57756557/initializing-a-stdarray-with-a-constant-value[initialize].
+`T[N]` suffers also from this same issue. The storage of `std::array<T, N>` is automatic (which
+may not always be desirable) and moving it is a linear operation instead of a constant-time one as
+is the case with `std::vector<T>` or `std::unique_ptr<T[]>`.
+
+`std::unique_ptr<T[]>` is certainly safer than raw `new`/`delete` calls but requires the user to
+manually track the size of the array. It also lacks many of the member functions and conveniences
+offered by `std::array<T, N>` or `std::vector<T>`.
+
+`std::vector<T>` is the most convenient of all the types listed above. It automatically handles
+a dynamically-allocated sequence of `T` and can resize when needed. `std::vector<T>` is a container
+that does a lot which can make it harder to convey intended semantics. For example, some functions
+truly do need a resizable sequence of `T` while others may only need a mutable reference to a
+fixed-size allocation. There's also _slight_ storage overhead in the case where the capacity of the
+vector never changes.
+
+So, what's a person to do if they need an AllocatorAware fixed-size contiguous sequence of `T`?
+Ideally, use `dynamic_array<T>`; non-ideally, attempt to write their own and take on the burden of
+maintenance, testing and documentation.
 
 ## Synopsis
 
