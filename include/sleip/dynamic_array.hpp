@@ -33,7 +33,7 @@ template <class T>
 inline constexpr std::size_t array_size_v = 1;
 
 template <class T, std::size_t N>
-inline constexpr std::size_t array_size_v<T[N]> = N * sizeof(T) /
+inline constexpr std::size_t array_size_v<T[N]> = sizeof(T[N]) /
                                                   sizeof(std::remove_all_extents_t<T[N]>);
 
 template <class T>
