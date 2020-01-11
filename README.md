@@ -23,3 +23,22 @@ auto buff = sleip::dynamic_array<char>(480 * 640 * 3, sleip::noinit);
 auto file = std::fstream("file.dat", std::ios::in | std::ios::binary);
 file.read(buff.data(), buff.size());
 ```
+
+## Using
+
+### Via vcpkg
+
+`dynamic_array` is available as a vcpkg package from the port directory [here](https://github.com/LeonineKing1199/sleip-port).
+
+```bash
+# navigate to the vcpkg root on your system
+cd ~/vcpkg
+
+git clone https://github.com/LeonineKing1199/sleip-port.git
+./vcpkg install sleip --overlay-ports=sleip-port
+
+# The package sleip:x64-linux provides CMake targets:
+#
+#     find_package(sleip-1.0.0 CONFIG REQUIRED)
+#     target_link_libraries(main PRIVATE Sleip::dynamic_array)
+```
