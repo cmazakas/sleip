@@ -92,6 +92,9 @@ public:
 
   dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator());
 
+  template <class Range>
+  dynamic_array(Range const& range);
+
   ~dynamic_array();
 
   auto
@@ -184,9 +187,9 @@ public:
   fill(T const& value) -> void;
 
   auto
-    swap(dynamic_array& other) &
-    noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value ||
-             std::allocator_traits<Allocator>::is_always_equal::value) -> void;
+  swap(dynamic_array& other) &
+  noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value ||
+            std::allocator_traits<Allocator>::is_always_equal::value) -> void;
 };
 
 template <class T, class Allocator>
@@ -275,7 +278,7 @@ Effects:: Constructs a `dynamic_array` of length `count` with each element being
 default-initialized, using the supplied `alloc`.
 Postconditions:: `size() == count && data() != nullptr && !empty() && get_allocator() == alloc`.
 
-### range constructor
+### ForwardIterator constructor
 ```
 template <class ForwardIterator>
 dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator());
@@ -344,6 +347,18 @@ dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator(
 +
 Effects:: Constructs a `dynamic_array` by copying `init`.
 Postconditions:: `size() == init.size() && get_allocator() == alloc`.
+
+### range constructor
+```
+template <class Range>
+dynamic_array(Range const& range);
+```
+[none]
+* {blank}
++
+Effects:: Constructs a `dynamic_array` by copying the supplied `Range`. This constructor uses ADL
+`begin` and `end` calls for grabbing ForwardIterators from the supplied `range`.
+Postconditions:: `size() == std::distance(begin(range), end(range))`.
 
 ### copy assignment
 ```

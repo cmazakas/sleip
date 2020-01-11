@@ -17,6 +17,7 @@
 
 #include <boost/mp11/integral.hpp>
 #include <boost/mp11/utility.hpp>
+#include <boost/mp11/function.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -95,6 +96,27 @@ using is_category_convertible =
 
 template <class It>
 using is_forward_iterator = is_category_convertible<It, std::forward_iterator_tag>;
+
+template <class It>
+inline constexpr bool const is_forward_iterator_v = is_forward_iterator<It>::value;
+
+using std::begin;
+using std::end;
+
+template <class Range>
+using has_begin = is_forward_iterator<decltype(begin(std::declval<Range const&>()))>;
+
+template <class Range>
+using has_end = is_forward_iterator<decltype(end(std::declval<Range const&>()))>;
+
+template <class Range>
+using has_begin_end = boost::mp11::mp_all<has_begin<Range>, has_end<Range>>;
+
+template <class Range>
+using is_range = boost::mp11::mp_eval_or<boost::mp11::mp_false, has_begin_end, Range>;
+
+template <class Range>
+inline constexpr bool const is_range_v = is_range<Range>::value;
 
 } // namespace detail
 
@@ -214,7 +236,7 @@ public:
   // size up-front
   //
   template <class ForwardIterator,
-            std::enable_if_t<detail::is_forward_iterator<ForwardIterator>::value, int> = 0>
+            std::enable_if_t<detail::is_forward_iterator_v<ForwardIterator>, int> = 0>
   dynamic_array(ForwardIterator first, ForwardIterator last, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
@@ -313,6 +335,16 @@ public:
   dynamic_array(std::initializer_list<T> init, Allocator const& alloc = Allocator())
     : dynamic_array(init.begin(), init.end(), alloc)
   {
+  }
+
+  template <class Range, std::enable_if_t<detail::is_range_v<Range>, int> = 0>
+  dynamic_array(Range const& range)
+    : boost::empty_value<Allocator>(boost::empty_init_t{})
+  {
+    using std::begin;
+    using std::end;
+
+    *this = dynamic_array(begin(range), end(range));
   }
 
   ~dynamic_array()

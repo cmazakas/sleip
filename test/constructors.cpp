@@ -3,13 +3,14 @@
 #include <boost/core/default_allocator.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 
-#include <memory>
-#include <iterator>
 #include <algorithm>
-#include <vector>
-#include <string>
 #include <array>
+#include <iterator>
+#include <list>
+#include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #include <boost/core/lightweight_test.hpp>
 
@@ -179,7 +180,7 @@ test_size_constructible_throwing()
 #endif
 
 void
-test_range_constructible()
+test_iterator_constructible()
 {
   auto const nums = std::vector{1, 2, 3, 4, 5};
 
@@ -260,6 +261,38 @@ test_initializer_list_constructible()
   BOOST_TEST_ALL_EQ(buf.begin(), buf.end(), nums.begin(), nums.end());
 }
 
+void
+test_range_constructible()
+{
+  using std::begin;
+  using std::end;
+
+  static_assert(sleip::detail::is_range_v<int[3]>);
+  static_assert(!sleip::detail::is_range_v<int>);
+
+  {
+    auto a = std::vector<int>{1, 2, 3, 4, 5};
+    auto b = sleip::dynamic_array<int>(a);
+
+    BOOST_TEST_ALL_EQ(a.begin(), a.end(), b.begin(), b.end());
+  }
+
+  {
+    auto a = std::list<int>{1, 2, 3, 4, 5};
+    auto b = sleip::dynamic_array<int>(a);
+
+    BOOST_TEST_ALL_EQ(b.begin(), b.end(), a.begin(), a.end());
+  }
+
+  {
+    int a[5] = {1, 2, 3, 4, 5};
+
+    auto b = sleip::dynamic_array<int>(a);
+
+    BOOST_TEST_ALL_EQ(b.begin(), b.end(), begin(a), end(a));
+  }
+}
+
 int
 main()
 {
@@ -269,12 +302,13 @@ main()
   test_value_constructible_throwing();
   test_size_constructible();
   test_size_constructible_throwing();
-  test_range_constructible();
+  test_iterator_constructible();
   test_copy_constructible();
   test_copy_constructible_allocator();
   test_move_constructible();
   test_move_constructible_allocator();
   test_initializer_list_constructible();
+  test_range_constructible();
 
   return boost::report_errors();
 }

@@ -5,13 +5,14 @@
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 
-#include <memory>
-#include <iterator>
 #include <algorithm>
-#include <vector>
-#include <string>
 #include <array>
+#include <iterator>
+#include <list>
+#include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #include <boost/core/lightweight_test.hpp>
 
@@ -187,7 +188,7 @@ test_size_constructible_throwing()
 #endif
 
 void
-test_range_constructible()
+test_iterator_constructible()
 {
   auto const count = 16;
 
@@ -317,6 +318,27 @@ test_initializer_list_constructible()
 #endif
 }
 
+void
+test_range_constructible()
+{
+  using std::begin;
+  using std::end;
+
+  static_assert(sleip::detail::is_range_v<int[3][3]>);
+  static_assert(!sleip::detail::is_range_v<int>);
+
+  {
+    int a[3][5] = {{1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}};
+
+    auto b = sleip::dynamic_array<int[5]>(a);
+
+    auto const* const p = boost::first_scalar(b.data());
+    auto const* const q = boost::first_scalar(a);
+
+    BOOST_TEST_ALL_EQ(p, p + 15, q, q + 15);
+  }
+}
+
 int
 main()
 {
@@ -326,12 +348,13 @@ main()
   test_value_constructible_throwing();
   test_size_constructible();
   test_size_constructible_throwing();
-  test_range_constructible();
+  test_iterator_constructible();
   test_copy_constructible();
   test_copy_constructible_allocator();
   test_move_constructible();
   test_move_constructible_allocator();
   test_initializer_list_constructible();
+  test_range_constructible();
 
   return boost::report_errors();
 }
