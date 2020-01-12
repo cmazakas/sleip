@@ -28,7 +28,8 @@ file.read(buff.data(), buff.size());
 
 ### Via vcpkg
 
-`dynamic_array` is available as a vcpkg package from the port directory [here](https://github.com/LeonineKing1199/sleip-port).
+`dynamic_array` is available as a [vcpkg](https://github.com/Microsoft/vcpkg) package from the port
+directory [here](https://github.com/LeonineKing1199/sleip-port).
 
 ```bash
 # navigate to the vcpkg root on your system
@@ -41,4 +42,52 @@ git clone https://github.com/LeonineKing1199/sleip-port.git
 #
 #     find_package(sleip 1.0.0 CONFIG REQUIRED)
 #     target_link_libraries(main PRIVATE Sleip::dynamic_array)
+```
+
+### Via CMake Install
+
+`dynamic_array` supports installation with CMake.
+
+```bash
+cd ~ \
+  && git clone https://github.com/LeonineKing1199/sleip.git \
+  && cd sleip \
+  && mkdir build \
+  && cd build \
+  && cmake \
+       -DBoost_DIR=/home/exbigboss/boosts/71/lib/cmake/Boost-1.71.0 \
+       -DBUILD_TESTING=OFF \
+       -DCMAKE_INSTALL_PREFIX=../install \
+       .. \
+  && cmake --install .
+
+tree ../install/
+# ../install/
+# ├── include
+# │   └── sleip-1.0.0
+# │       └── sleip
+# │           ├── dynamic_array.hpp
+# │           └── dynamic_array_fwd.hpp
+# └── lib
+#     └── cmake
+#         └── sleip-1.0.0
+#             ├── sleip-config-version.cmake
+#             ├── sleip-config.cmake
+#             └── sleip-targets.cmake
+```
+
+Now `find_package(Sleip 1.0.0)` will work when the `sleip_DIR` is set to:
+`<INSTALL_PREFIX>/lib/cmake/sleip-1.0.0`.
+
+Using our above example:
+
+```bash
+cmake -Dsleip_DIR=~/sleip/install/lib/cmake/sleip-1.0.0 ..
+```
+
+The following will now work in CMake:
+
+```bash
+find_package(sleip 1.0.0 CONFIG REQUIRED)
+target_link_libraries(main PRIVATE Sleip::dynamic_array)
 ```
