@@ -39,6 +39,6 @@ git clone https://github.com/LeonineKing1199/sleip-port.git
 
 # The package sleip:x64-linux provides CMake targets:
 #
-#     find_package(sleip-1.0.0 CONFIG REQUIRED)
+#     find_package(sleip 1.0.0 CONFIG REQUIRED)
 #     target_link_libraries(main PRIVATE Sleip::dynamic_array)
 ```
