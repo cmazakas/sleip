@@ -49,17 +49,17 @@ git clone https://github.com/LeonineKing1199/sleip-port.git
 `dynamic_array` supports installation with CMake.
 
 ```bash
-cd ~ \
-  && git clone https://github.com/LeonineKing1199/sleip.git \
-  && cd sleip \
-  && mkdir build \
-  && cd build \
-  && cmake \
-       -DBoost_DIR=/home/exbigboss/boosts/71/lib/cmake/Boost-1.71.0 \
-       -DBUILD_TESTING=OFF \
-       -DCMAKE_INSTALL_PREFIX=../install \
-       .. \
-  && cmake --install .
+cd ~
+git clone https://github.com/LeonineKing1199/sleip.git
+cd sleip
+mkdir build
+cd build
+cmake \
+  -DBoost_DIR=/home/exbigboss/boosts/71/lib/cmake/Boost-1.71.0 \
+  -DBUILD_TESTING=OFF \
+  -DCMAKE_INSTALL_PREFIX=../install \
+  ..
+cmake --install .
 
 tree ../install/
 # ../install/
@@ -91,3 +91,30 @@ The following will now work in CMake:
 find_package(sleip 1.0.0 CONFIG REQUIRED)
 target_link_libraries(main PRIVATE Sleip::dynamic_array)
 ```
+
+### Via CMake add_subdirectory
+
+`dynamic_array` can be used directly as a CMake sub-project.
+
+```bash
+cd ~/project
+git clone https://github.com/LeonineKing1199/sleip.git
+```
+
+Then in your project's CMakeLists.txt,
+
+```cmake
+cmake_minimum_required(VERSION 3.13)
+
+project(sleip-test LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(SLEIP_ADD_SUBDIRECTORY ON CACHE BOOL "")
+
+add_subdirectory(sleip)
+add_executable(test main.cpp)
+
+target_link_libraries(test PRIVATE Sleip::dynamic_array)
+```
+
+By default, this will build the tests for `dynamic_array` alongside the consuming project's.

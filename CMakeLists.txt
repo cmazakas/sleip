@@ -36,50 +36,62 @@ if (BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
-install(
-  TARGETS
-    dynamic_array
-
-  EXPORT
-    sleip-targets
-
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+option(
+  SLEIP_ADD_SUBDIRECTORY
+  "set(SLEIP_ADD_SUBDIRECTORY ON CACHE BOOL \"\") to disable installation rules allowing Sleip to support add_subdirectory"
+  OFF
 )
 
-install(
-  EXPORT
-    sleip-targets
+if (SLEIP_ADD_SUBDIRECTORY)
+  add_library(Sleip::dynamic_array ALIAS dynamic_array)
+endif()
 
-  NAMESPACE Sleip::
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sleip-${PROJECT_VERSION}
-)
+if (NOT SLEIP_ADD_SUBDIRECTORY)
+  install(
+    TARGETS
+      dynamic_array
 
-install(
-  DIRECTORY
-    include/
+    EXPORT
+      sleip-targets
 
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sleip-${PROJECT_VERSION}
-  FILES_MATCHING PATTERN "*.hpp"
-)
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
 
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/sleip-config-version.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
+  install(
+    EXPORT
+      sleip-targets
 
-configure_package_config_file(
-  ${CMAKE_CURRENT_LIST_DIR}/cmake/sleip-config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/sleip-config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sleip-${PROJECT_VERSION}
-)
+    NAMESPACE Sleip::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sleip-${PROJECT_VERSION}
+  )
 
-install(
-  FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/sleip-config.cmake
+  install(
+    DIRECTORY
+      include/
+
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sleip-${PROJECT_VERSION}
+    FILES_MATCHING PATTERN "*.hpp"
+  )
+
+  include(CMakePackageConfigHelpers)
+  write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/sleip-config-version.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sleip-${PROJECT_VERSION}
-)
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+  )
+
+  configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/sleip-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/sleip-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sleip-${PROJECT_VERSION}
+  )
+
+  install(
+    FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/sleip-config.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/sleip-config-version.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sleip-${PROJECT_VERSION}
+  )
+endif()
