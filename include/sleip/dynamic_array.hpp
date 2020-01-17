@@ -222,7 +222,8 @@ public:
     : boost::empty_value<Allocator>(boost::empty_init_t{}, alloc)
   {
     auto& alloc_ = boost::empty_value<Allocator>::get();
-    data_        = create_(boost::noinit_adapt(alloc_), count);
+    auto  a      = boost::noinit_adapt(alloc_);
+    data_        = create_(a, count);
     size_        = count;
   }
 
