@@ -103,6 +103,20 @@ inline constexpr bool const is_forward_iterator_v = is_forward_iterator<It>::val
 using std::begin;
 using std::end;
 
+template <class T>
+auto
+sleip_begin(T const& t) -> decltype(auto)
+{
+  return begin(t);
+}
+
+template <class T>
+auto
+sleip_end(T const& t) -> decltype(auto)
+{
+  return end(t);
+}
+
 template <class Range>
 using has_begin = is_forward_iterator<decltype(begin(std::declval<Range const&>()))>;
 
@@ -282,12 +296,8 @@ public:
 
   template <class Range, std::enable_if_t<detail::is_range_v<Range>, int> = 0>
   dynamic_array(Range const& range, Allocator const& alloc = Allocator())
-    : boost::empty_value<Allocator>(boost::empty_init_t{})
+    : dynamic_array(detail::sleip_begin(range), detail::sleip_end(range), alloc)
   {
-    using std::begin;
-    using std::end;
-
-    *this = dynamic_array(begin(range), end(range), alloc);
   }
 
   ~dynamic_array()
