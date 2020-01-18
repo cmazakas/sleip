@@ -281,13 +281,13 @@ public:
   }
 
   template <class Range, std::enable_if_t<detail::is_range_v<Range>, int> = 0>
-  dynamic_array(Range const& range)
+  dynamic_array(Range const& range, Allocator const& alloc = Allocator())
     : boost::empty_value<Allocator>(boost::empty_init_t{})
   {
     using std::begin;
     using std::end;
 
-    *this = dynamic_array(begin(range), end(range));
+    *this = dynamic_array(begin(range), end(range), alloc);
   }
 
   ~dynamic_array()
