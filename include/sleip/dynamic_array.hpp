@@ -158,26 +158,16 @@ private:
   static pointer
   create_(Allocator_& alloc, std::size_t count, Args&&... args)
   {
-    struct dealloc
-    {
-      using pointer = typename dynamic_array::pointer;
-
-      Allocator&  alloc;
-      std::size_t size = 0;
-      auto
-      operator()(pointer ptr) const -> void
-      {
-        std::allocator_traits<Allocator>::deallocate(alloc, ptr, size);
-      }
-    };
-
-    auto d = std::unique_ptr<T[], dealloc>(std::allocator_traits<Allocator>::allocate(alloc, count),
-                                           dealloc{alloc, count});
-
-    auto* const p = boost::first_scalar(boost::to_address(d.get()));
-    boost::alloc_construct_n(alloc, p, detail::num_elems<T>(count), std::forward<Args>(args)...);
-
-    return d.release();
+    pointer data = std::allocator_traits<Allocator>::allocate(alloc, count);
+    try {
+      auto* const p = boost::first_scalar(boost::to_address(data));
+      boost::alloc_construct_n(alloc, p, detail::num_elems<T>(count), std::forward<Args>(args)...);
+    }
+    catch (...) {
+      std::allocator_traits<Allocator>::deallocate(alloc, data, count);
+      throw;
+    }
+    return data;
   }
 
   template <typename Allocator_>
